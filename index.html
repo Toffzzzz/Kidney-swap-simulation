@@ -96,7 +96,7 @@
 
     <h3>Who is in the pool</h3>
     <label class="ctl"><span class="ctl-top">UK &amp; Europe pairs / year <output id="o_uk"></output></span>
-      <input type="range" id="uk" min="0" max="1500" step="2"><span class="help">Incompatible pairs joining each year. UK today: about 268.</span></label>
+      <input type="range" id="uk" min="0" max="1500" step="2"><span class="help">Incompatible pairs joining each year. UK today: about 231 (272 registrations a year in non-COVID years, 85% incompatible).</span></label>
     <label class="ctl"><span class="ctl-top">South Asia pairs / year <output id="o_sa"></output></span>
       <input type="range" id="sa" min="0" max="1500" step="2"><span class="help">Blood groups follow Indian data: B is almost as common as O.</span></label>
     <label class="ctl"><span class="ctl-top">Gulf / Middle East pairs / year <output id="o_me"></output></span>
@@ -115,9 +115,9 @@
 
     <h3>Extra kidneys</h3>
     <label class="ctl"><span class="ctl-top">Altruistic donors per 100 pairs <output id="o_altruisticPer100"></output></span>
-      <input type="range" id="altruisticPer100" min="0" max="40" step="1"><span class="help">Strangers who donate and start a chain: donor → pair → pair → waiting list. UK: about 13 (35 a year). A swap-only scheme has 0.</span></label>
+      <input type="range" id="altruisticPer100" min="0" max="40" step="1"><span class="help">Strangers who donate and start a chain: donor → pair → pair → waiting list. UK: about 13 (about 35 chains a year outside the COVID year). A swap-only scheme has 0.</span></label>
     <label class="ctl"><span class="ctl-top">Compatible pairs who join anyway <output id="o_compatibleJoin"></output></span>
-      <input type="range" id="compatibleJoin" min="0" max="0.6" step="0.01"><span class="help">Pairs who could transplant directly but join to help others, often bringing group O donors. UK: about 50 pairs a year (setting 20%).</span></label>
+      <input type="range" id="compatibleJoin" min="0" max="0.6" step="0.01"><span class="help">Pairs who could transplant directly but join to help others, often bringing group O donors. UK: about 41 pairs a year (setting 18%).</span></label>
 
     <h3>Rules</h3>
     <div class="check"><input type="checkbox" id="protectO"><label for="protectO"><b>Group O kidneys only to group O patients</b><span class="help">Stops O kidneys going to A, B or AB patients, who have other options.</span></label></div>
@@ -132,11 +132,11 @@
     <details>
       <summary>Calibrated settings (change with care)</summary>
       <label class="ctl"><span class="ctl-top">Donors the team would accept <output id="o_acceptance"></output></span>
-        <input type="range" id="acceptance" min="0.05" max="0.8" step="0.01"><span class="help">Of donors who are blood-group compatible and crossmatch-negative, the share the transplant team would accept on age, tissue-type mismatch, size and so on. Tuned to UK results: 20%.</span></label>
+        <input type="range" id="acceptance" min="0.05" max="0.8" step="0.01"><span class="help">Of donors who are blood-group compatible and crossmatch-negative, the share the transplant team would accept on age, tissue-type mismatch, size and so on. Tuned to UK results: 14%.</span></label>
       <label class="ctl"><span class="ctl-top">Average days from match to surgery <output id="o_daysToSurgery"></output></span>
-        <input type="range" id="daysToSurgery" min="30" max="400" step="5"><span class="help">Average time, including final tests, scheduling and other non-matching delays. Each swap takes at least 6 weeks, and some take much longer. Tuned to the UK median wait of 386 days: 260.</span></label>
+        <input type="range" id="daysToSurgery" min="30" max="400" step="5"><span class="help">Average time, including final tests, scheduling and other non-matching delays. Each swap takes at least 45 days, and some take much longer. Default 90 days (typical swap about 2½ months), based on NHSBT's post-COVID figure of a median 3 months from an altruistic donor being matched to donating.</span></label>
       <label class="ctl"><span class="ctl-top">Pairs leaving per year <output id="o_leaveRatePerYear"></output></span>
-        <input type="range" id="leaveRatePerYear" min="0" max="0.8" step="0.01"><span class="help">Share of waiting pairs who leave each year (illness, death, a deceased-donor kidney, withdrawal). Tuned: 40%.</span></label>
+        <input type="range" id="leaveRatePerYear" min="0" max="0.8" step="0.01"><span class="help">Share of waiting pairs who leave each year (illness, death, a deceased-donor kidney, withdrawal). Tuned: 25%.</span></label>
       <label class="ctl"><span class="ctl-top">Priority strictness <output id="o_priorityNoise"></output></span>
         <input type="range" id="priorityNoise" min="0" max="2" step="0.05"><span class="help">How strictly the hardest-to-match patients get first pick (lower = stricter). Tuned: 0.15.</span></label>
     </details>
@@ -172,7 +172,7 @@
     <div class="grid2">
       <section class="card">
         <p class="chart-title">Who gets transplanted: by blood group</p>
-        <p class="chart-sub">Share of each group transplanted. Whiskers show the 90% range across runs. Grey ticks show the real UK figures (NHSBT 2021–25).</p>
+        <p class="chart-sub">Share of each group transplanted. Whiskers show the 90% range across runs. Grey ticks show the real UK figures (NHSBT, April 2021 – March 2025, after the COVID pause).</p>
         <div id="byGroup"></div>
       </section>
       <section class="card">
@@ -216,19 +216,20 @@
         <li><b>Pairs arrive.</b> Each day new donor–recipient pairs are created at the chosen rate. Each gets donor and recipient blood groups (from that region's frequencies) and a recipient antibody level. Pairs incompatible with each other always join; a share of compatible pairs also join.</li>
         <li><b>Who can give to whom.</b> For each donor and each other patient, the model decides once whether that kidney could go to that patient. Three things must be true: the blood groups are compatible; the crossmatch is negative (a patient with a 95% antibody level reacts to about 95% of donors); and the transplant team would accept the donor on other grounds.</li>
         <li><b>Matching runs.</b> On the chosen timetable, the computer looks for two-way swaps (A↔B), three-way swaps (A→B→C→A) and altruistic chains (donor → pair → pair → waiting list). The hardest-to-match patients go first. Real schemes use exact optimisation; this model uses a fast "hardest first" search, which is close but may find slightly fewer swaps in big pools.</li>
-        <li><b>Swaps go ahead or fall through.</b> Each agreed swap may fall through. If it does, the pairs go back into the pool. If it goes ahead, the operation happens after a match-to-surgery delay (at least 6 weeks, 260 days on average, varying from swap to swap), plus the extra international days if the swap crosses borders.</li>
+        <li><b>Swaps go ahead or fall through.</b> Each agreed swap may fall through. If it does, the pairs go back into the pool. If it goes ahead, the operation happens after a match-to-surgery delay (at least 45 days, 90 days on average, varying from swap to swap), plus the extra international days if the swap crosses borders.</li>
         <li><b>Pairs leave.</b> Waiting pairs can leave at any time without a transplant.</li>
         <li><b>Measuring.</b> The model runs for 2 years to fill the pool. It then follows everyone who joins over the next 3 years, each for up to 3 more years. All figures describe that group of patients.</li>
         <li><b>Monte Carlo.</b> All of this is repeated many times with different random numbers. The average is the expected result; the 90% range shows how much it could vary.</li>
       </ol>
       <h3>Calibration against the real UK scheme</h3>
-      <p>The four "calibrated" settings were tuned so that the <i>UK today</i> preset reproduces published NHSBT figures for the UK Living Kidney Sharing Scheme (Annual Report on Living Donor Kidney Transplantation 2024/25):</p>
-      <table id="calib"><thead><tr><th>Measure</th><th class="num">Real UK</th><th class="num">Model (UK today)</th></tr></thead><tbody>
-        <tr><td>Registered patients transplanted</td><td class="num">51%</td><td class="num" data-k="pctTransplanted">run to see</td></tr>
-        <tr><td>Median days from joining to transplant</td><td class="num">386</td><td class="num" data-k="medianWait">run to see</td></tr>
-        <tr><td>Group O patients transplanted</td><td class="num">≈40%</td><td class="num" data-k="g0">run to see</td></tr>
-        <tr><td>Antibody level 100%: transplanted</td><td class="num">3%</td><td class="num" data-k="b4">run to see</td></tr>
-        <tr><td>Agreed swaps that fall through</td><td class="num">28–29%</td><td class="num" data-k="failRate">run to see</td></tr>
+      <p>The calibrated settings were tuned so that the <i>UK today</i> preset reproduces published NHSBT figures for the UK Living Kidney Sharing Scheme. <b>COVID-affected data is left out:</b> 2020/21, when registrations fell to 91 and altruistic chains to 24, is excluded from pool size and chain numbers. The outcome figures come from April 2021 – March 2025, after the pause. NHSBT's 386-day median wait is not used, because its cohort (registered 2015–2021) waited through the 2020 pause.</p>
+      <table id="calib"><thead><tr><th>Measure</th><th class="num">Real UK (non-COVID years)</th><th class="num">Model (UK today)</th></tr></thead><tbody>
+        <tr><td>Registered patients transplanted (2021–25)</td><td class="num">51%</td><td class="num" data-k="pctTransplanted">run to see</td></tr>
+        <tr><td>Group O patients transplanted (2021–25)</td><td class="num">≈40%</td><td class="num" data-k="g0">run to see</td></tr>
+        <tr><td>Antibody level 95–99%: transplanted (2021–25)</td><td class="num">31%</td><td class="num" data-k="b3">run to see</td></tr>
+        <tr><td>Antibody level 100%: transplanted (2021–25)</td><td class="num">3%</td><td class="num" data-k="b4">run to see</td></tr>
+        <tr><td>Agreed swaps that fall through (2021–25)</td><td class="num">29%</td><td class="num" data-k="failRate">run to see</td></tr>
+        <tr><td>Compatible pairs joining per year</td><td class="num">≈41</td><td class="num" data-k="compat">run to see</td></tr>
       </tbody></table>
       <h3>Main limitations</h3>
       <ul>
@@ -284,23 +285,23 @@
   ];
 
   const DEFAULTS = {
-    arrivals: { uk: 268, sa: 0, me: 0 }, // incompatible pairs joining per year (NHSBT 2019-25: 1,611 in 6 years)
+    arrivals: { uk: 231, sa: 0, me: 0 }, // incompatible pairs joining per year (NHSBT: 272 registrations a year in non-COVID years 2019/20 and 2021/22-2024/25, 85% incompatible)
     crossBorder: true,           // can pairs from different regions swap?
     matchEveryDays: 91,          // 91 = quarterly (UK today)
     maxCycle: 3,                 // 2 = two-way swaps only, 3 = also three-way
-    altruisticPer100: 13,        // altruistic donors starting chains, per 100 pairs joining (UK: ~35 a year for ~268 pairs)
+    altruisticPer100: 13,        // altruistic donors starting chains, per 100 incompatible pairs (UK: ~35 chains a year in non-COVID years 2016/17-2024/25 excluding 2020/21)
     maxChainPairs: 2,            // pairs in a chain before it ends on the waiting list
-    compatibleJoin: 0.2,         // share of compatible pairs that join anyway (gives ~50 a year at UK scale, as NHSBT reports)
+    compatibleJoin: 0.18,        // share of compatible pairs that join anyway (gives ~41 a year at UK scale: 15% of registrations)
     protectO: false,             // group O donors may only give to group O patients
     a2Donors: false,             // use A2-subtype donors for O/B patients with low antibody levels
     searchCap: 4000,             // max links checked per patient when looking for a three-way swap (speed limit)
     priorityNoise: 0.15,         // how strictly hardest-to-match patients go first (lower = stricter); calibrated
-    acceptance: 0.2,             // share of crossmatch-negative, blood-group-compatible donors the clinical team would accept (age, HLA mismatch, size, distance); calibrated
+    acceptance: 0.14,            // share of crossmatch-negative, blood-group-compatible donors the clinical team would accept (age, HLA mismatch, size, distance); calibrated
     fallThrough: 0.28,           // share of agreed swaps that don't go ahead (NHSBT: 72% proceed)
-    daysToSurgery: 260,          // matching run to operation, including tests, scheduling and other non-matching delays; calibrated to the 386-day UK median
+    daysToSurgery: 90,           // average days from matching run to operation (median ~2.5 months; NHSBT 2021-25: altruistic donation takes a median 3 months from notification)
     extraDaysCrossBorder: 30,    // extra time for travel, visas and paperwork
     daysToDiscoverFailure: 45,   // how long before a failed swap is known and pairs re-enter
-    leaveRatePerYear: 0.4,       // share of waiting pairs who leave each year (illness, death, deceased-donor kidney, withdraw)
+    leaveRatePerYear: 0.25,      // share of waiting pairs who leave each year (illness, death, deceased-donor kidney, withdraw)
     warmupYears: 2,              // run-in so the pool fills up before measuring
     cohortYears: 3,              // pairs joining in this window are followed
     followUpYears: 3,            // extra time to see what happens to them
@@ -523,9 +524,9 @@
       if (ndad) regions.add(ndad.region);
       const cross = regions.size > 1;
       const success = rng() >= P.fallThrough;
-      // Time to surgery varies: at least 6 weeks (final tests), with a long tail
+      // Time to surgery varies: at least 45 days (final tests), with a tail
       // (scheduling, illness, re-testing). The average is daysToSurgery.
-      const minDays = Math.min(42, P.daysToSurgery);
+      const minDays = Math.min(45, P.daysToSurgery);
       const delay = minDays - (P.daysToSurgery - minDays) * Math.log(1 - rng());
       const when = success
         ? day + Math.round(delay) + (cross ? P.extraDaysCrossBorder : 0)
@@ -712,13 +713,13 @@
 
   // ------------------------------------------------------------------ presets
   const PRESETS = [
-    { id: 'uk', name: 'UK today (calibrated)', help: 'The UK scheme as it runs now: about 268 incompatible pairs a year, matching every 3 months, three-way swaps, altruistic chains and some compatible pairs.', p: {} },
+    { id: 'uk', name: 'UK today (calibrated)', help: 'The UK scheme as it runs now: about 231 incompatible pairs a year, matching every 3 months, three-way swaps, altruistic chains and some compatible pairs.', p: {} },
     { id: 'uk-weekly', name: 'UK, matching weekly', help: 'Same pool as the UK today, but matching every week instead of every 3 months.', p: { matchEveryDays: 7 } },
     { id: 'uk-swaponly', name: 'UK, swap-only (no altruistic donors or compatible pairs)', help: 'Every patient must bring a donor and every donor gives only as part of a swap.', p: { altruisticPer100: 0, compatibleJoin: 0 } },
-    { id: 'three-separate', name: 'Three regions, separate national schemes', help: 'UK, South Asia and the Gulf each with UK-sized pools, matching only within their own region.', p: { arrivals: { uk: 268, sa: 268, me: 268 }, crossBorder: false } },
-    { id: 'three-shared', name: 'Three regions, one shared international pool', help: 'The same three regions, but pairs can swap across borders. Each cross-border swap adds 30 days for travel.', p: { arrivals: { uk: 268, sa: 268, me: 268 }, crossBorder: true } },
-    { id: 'three-shared-swaponly', name: 'Shared international pool, swap-only', help: 'Your proposed model: international pool, every recipient brings a donor, no altruistic chains.', p: { arrivals: { uk: 268, sa: 268, me: 268 }, crossBorder: true, altruisticPer100: 0, compatibleJoin: 0 } },
-    { id: 'three-shared-best', name: 'Shared pool + O protection + A2 donors + weekly', help: 'The shared international pool with the rules that help group O patients, matching weekly.', p: { arrivals: { uk: 268, sa: 268, me: 268 }, crossBorder: true, protectO: true, a2Donors: true, matchEveryDays: 7 } },
+    { id: 'three-separate', name: 'Three regions, separate national schemes', help: 'UK, South Asia and the Gulf each with UK-sized pools, matching only within their own region.', p: { arrivals: { uk: 231, sa: 231, me: 231 }, crossBorder: false } },
+    { id: 'three-shared', name: 'Three regions, one shared international pool', help: 'The same three regions, but pairs can swap across borders. Each cross-border swap adds 30 days for travel.', p: { arrivals: { uk: 231, sa: 231, me: 231 }, crossBorder: true } },
+    { id: 'three-shared-swaponly', name: 'Shared international pool, swap-only', help: 'Your proposed model: international pool, every recipient brings a donor, no altruistic chains.', p: { arrivals: { uk: 231, sa: 231, me: 231 }, crossBorder: true, altruisticPer100: 0, compatibleJoin: 0 } },
+    { id: 'three-shared-best', name: 'Shared pool + O protection + A2 donors + weekly', help: 'The shared international pool with the rules that help group O patients, matching weekly.', p: { arrivals: { uk: 231, sa: 231, me: 231 }, crossBorder: true, protectO: true, a2Donors: true, matchEveryDays: 7 } },
     { id: 'big', name: 'Large international pool (3 × 1,000 pairs)', help: 'A much bigger pool, matching weekly. This takes noticeably longer to run.', p: { arrivals: { uk: 1000, sa: 1000, me: 1000 }, crossBorder: true, matchEveryDays: 7 } },
   ];
   const sliders = {
@@ -760,7 +761,7 @@
   }
   function estimateSeconds() {
     const p = readParams(); const tot = p.arrivals.uk + p.arrivals.sa + p.arrivals.me;
-    const perRun = 0.2 * Math.pow(Math.max(tot, 1) / 268, p.crossBorder ? 1.9 : 1.1) * (p.matchEveryDays <= 7 ? 1.4 : 1);
+    const perRun = 0.2 * Math.pow(Math.max(tot, 1) / 231, p.crossBorder ? 1.9 : 1.1) * (p.matchEveryDays <= 7 ? 1.4 : 1);
     return perRun * +$('runs').value;
   }
   document.querySelectorAll('aside input, aside select').forEach((el) => {
@@ -1002,7 +1003,7 @@
     if (!isUK) return;
     const r = current.res;
     const set = (k, v) => { const c = document.querySelector(`#calib [data-k="${k}"]`); if (c) c.textContent = v; };
-    set('pctTransplanted', pct(r.pctTransplanted.mean)); set('medianWait', days(r.medianWait.mean));
+    set('pctTransplanted', pct(r.pctTransplanted.mean)); set('b3', pct(r.byBand[3].mean)); set('compat', Math.round(r.compatiblePerYear.mean));
     set('g0', pct(r.byGroup[0].mean)); set('b4', pct(r.byBand[4].mean)); set('failRate', pct(r.failRate.mean));
   }
 

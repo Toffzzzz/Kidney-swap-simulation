@@ -39,23 +39,23 @@
   ];
 
   const DEFAULTS = {
-    arrivals: { uk: 268, sa: 0, me: 0 }, // incompatible pairs joining per year (NHSBT 2019-25: 1,611 in 6 years)
+    arrivals: { uk: 231, sa: 0, me: 0 }, // incompatible pairs joining per year (NHSBT: 272 registrations a year in non-COVID years 2019/20 and 2021/22-2024/25, 85% incompatible)
     crossBorder: true,           // can pairs from different regions swap?
     matchEveryDays: 91,          // 91 = quarterly (UK today)
     maxCycle: 3,                 // 2 = two-way swaps only, 3 = also three-way
-    altruisticPer100: 13,        // altruistic donors starting chains, per 100 pairs joining (UK: ~35 a year for ~268 pairs)
+    altruisticPer100: 13,        // altruistic donors starting chains, per 100 incompatible pairs (UK: ~35 chains a year in non-COVID years 2016/17-2024/25 excluding 2020/21)
     maxChainPairs: 2,            // pairs in a chain before it ends on the waiting list
-    compatibleJoin: 0.2,         // share of compatible pairs that join anyway (gives ~50 a year at UK scale, as NHSBT reports)
+    compatibleJoin: 0.18,        // share of compatible pairs that join anyway (gives ~41 a year at UK scale: 15% of registrations)
     protectO: false,             // group O donors may only give to group O patients
     a2Donors: false,             // use A2-subtype donors for O/B patients with low antibody levels
     searchCap: 4000,             // max links checked per patient when looking for a three-way swap (speed limit)
     priorityNoise: 0.15,         // how strictly hardest-to-match patients go first (lower = stricter); calibrated
-    acceptance: 0.2,             // share of crossmatch-negative, blood-group-compatible donors the clinical team would accept (age, HLA mismatch, size, distance); calibrated
+    acceptance: 0.14,            // share of crossmatch-negative, blood-group-compatible donors the clinical team would accept (age, HLA mismatch, size, distance); calibrated
     fallThrough: 0.28,           // share of agreed swaps that don't go ahead (NHSBT: 72% proceed)
-    daysToSurgery: 260,          // matching run to operation, including tests, scheduling and other non-matching delays; calibrated to the 386-day UK median
+    daysToSurgery: 90,           // average days from matching run to operation (median ~2.5 months; NHSBT 2021-25: altruistic donation takes a median 3 months from notification)
     extraDaysCrossBorder: 30,    // extra time for travel, visas and paperwork
     daysToDiscoverFailure: 45,   // how long before a failed swap is known and pairs re-enter
-    leaveRatePerYear: 0.4,       // share of waiting pairs who leave each year (illness, death, deceased-donor kidney, withdraw)
+    leaveRatePerYear: 0.25,      // share of waiting pairs who leave each year (illness, death, deceased-donor kidney, withdraw)
     warmupYears: 2,              // run-in so the pool fills up before measuring
     cohortYears: 3,              // pairs joining in this window are followed
     followUpYears: 3,            // extra time to see what happens to them
@@ -278,9 +278,9 @@
       if (ndad) regions.add(ndad.region);
       const cross = regions.size > 1;
       const success = rng() >= P.fallThrough;
-      // Time to surgery varies: at least 6 weeks (final tests), with a long tail
+      // Time to surgery varies: at least 45 days (final tests), with a tail
       // (scheduling, illness, re-testing). The average is daysToSurgery.
-      const minDays = Math.min(42, P.daysToSurgery);
+      const minDays = Math.min(45, P.daysToSurgery);
       const delay = minDays - (P.daysToSurgery - minDays) * Math.log(1 - rng());
       const when = success
         ? day + Math.round(delay) + (cross ? P.extraDaysCrossBorder : 0)

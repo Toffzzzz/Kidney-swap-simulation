@@ -20,5 +20,5 @@ console.log('  fall-through rate  ', pct(s.failRate), ' chain share', pct(s.chai
 console.log('  by cRF band        ', s.byBand.map(pct).join(' | '), ' [NHSBT 57|61|53|31|3]');
 console.log('  band mix           ', s.bandShare.map(pct).join(' | '), ' [NHSBT 43|30|7|13|7]');
 console.log('  by group O A B AB  ', s.byGroup.map(pct).join(' | '), ' [NHSBT 40|64|54|42]');
-console.log('  compatible pairs/yr', s.compatiblePerYear.mean.toFixed(0), ' [NHSBT ~48]');
+console.log('  compatible pairs/yr', s.compatiblePerYear.mean.toFixed(0), ' [NHSBT ~41]');
 for (const [k, v] of Object.entries(s.byRegion)) console.log('  region', k, pct(v));
