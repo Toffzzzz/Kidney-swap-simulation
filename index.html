@@ -866,6 +866,7 @@
 
   // ------------------------------------------------------------------ helpers
   const pct = (x) => (Number.isFinite(x) ? Math.round(100 * x) + '%' : '–');
+  const pct1 = (x) => (Number.isFinite(x) ? (100 * x).toFixed(1) + '%' : '–');
   const rng = (o) => (Number.isFinite(o.lo) ? Math.round(100 * o.lo) + '–' + Math.round(100 * o.hi) + '%' : '');
   const days = (x) => (Number.isFinite(x) ? Math.round(x) : '–');
   const NS = 'http://www.w3.org/2000/svg';
@@ -901,10 +902,10 @@
       return '<div class="d">' + s + ' vs “' + base.name + '”</div>';
     };
     const tiles = [
-      ['Pairs transplanted', pct(r.pctTransplanted.mean), '90% of runs: ' + rng(r.pctTransplanted), delta('pctTransplanted', true)],
-      ['Transplanted within a year', pct(r.pctWithinYear.mean), '90% of runs: ' + rng(r.pctWithinYear), delta('pctWithinYear', true)],
+      ['Pairs transplanted', pct1(r.pctTransplanted.mean), '90% of runs: ' + rng(r.pctTransplanted), delta('pctTransplanted', true)],
+      ['Transplanted within a year', pct1(r.pctWithinYear.mean), '90% of runs: ' + rng(r.pctWithinYear), delta('pctWithinYear', true)],
       ['Median wait, joining to surgery', days(r.medianWait.mean) + ' days', '90% of runs: ' + days(r.medianWait.lo) + '–' + days(r.medianWait.hi) + ' days', delta('medianWait', false)],
-      ['Left without a kidney', pct(r.pctLeft.mean), '90% of runs: ' + rng(r.pctLeft), delta('pctLeft', true)],
+      ['Left without a kidney', pct1(r.pctLeft.mean), '90% of runs: ' + rng(r.pctLeft), delta('pctLeft', true)],
     ];
     $('tiles').innerHTML = tiles.map(([k, v, rr, d]) => `<div class="tile"><div class="k">${k}</div><div class="v">${v}</div><div class="r">${rr}</div>${d}</div>`).join('') +
       `<div class="tile" style="grid-column:1/-1;padding:10px 16px"><div class="r">${current.name} · ${current.runs} runs (seed ${current.seed}) · about ${Math.round(r.cohortSize.mean)} pairs followed per run · average pool ${Math.round(r.avgPool.mean)} pairs · ${Math.round(r.pairTxPerYear.mean)} pair transplants a year${r.waitingListPerYear.mean > 0.5 ? ' + ' + Math.round(r.waitingListPerYear.mean) + ' to the waiting list from chains' : ''}${r.crossBorderShare.mean > 0 ? ' · ' + pct(r.crossBorderShare.mean) + ' of transplants cross a border' : ''}</div></div>`;
