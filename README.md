@@ -21,6 +21,8 @@ node tools/run.js '{"arrivals":{"uk":231,"sa":231,"me":231},"crossBorder":true}'
 
 After editing `src/engine.js` or `src/ui.html`, run `python3 build.py` to rebuild `index.html`.
 
+To check the engine does what it claims, run `node tools/test.js`. It audits every proposed swap: every link must exist and obey the blood-group, border and O rules, and no pair may be in two swaps at once. It also confirms that arrivals, crossmatch rates, fall-through, surgery delays and leaving rates come out as set. Finally, it checks reproducibility and basic behaviour.
+
 ## Project layout
 
 | File | What it is |
@@ -30,6 +32,7 @@ After editing `src/engine.js` or `src/ui.html`, run `python3 build.py` to rebuil
 | `src/ui.html` | The page layout, controls and charts |
 | `build.py` | Combines the engine and the page into `index.html` |
 | `tools/run.js` | Command-line runner that prints results next to the real UK figures |
+| `tools/test.js` | Accuracy checks: audits every swap and confirms each setting behaves as stated |
 
 ## How the model works
 
