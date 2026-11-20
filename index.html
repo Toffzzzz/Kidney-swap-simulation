@@ -1,0 +1,1035 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width, initial-scale=1">
+<title>Kidney Exchange Simulator</title>
+<style>
+  :root {
+    color-scheme: light;
+    --bg: #f4f3f0; --surface: #fcfcfb; --surface-2: #f0efec; --border: #dedcd6;
+    --text: #0b0b0b; --text-2: #52514e; --muted: #7a7974; --grid: #e7e5df;
+    --s1: #2a78d6; --s2: #eb6834; --s3: #1baf7a; --band1: rgba(42,120,214,0.14);
+    --accent: #2a78d6; --good: #1f7a3a; --warn: #9a6400;
+  }
+  @media (prefers-color-scheme: dark) {
+    :root {
+      color-scheme: dark;
+      --bg: #121211; --surface: #1a1a19; --surface-2: #232321; --border: #34332f;
+      --text: #f0efec; --text-2: #c3c2b7; --muted: #8f8e86; --grid: #2c2b28;
+      --s1: #3987e5; --s2: #d95926; --s3: #199e70; --band1: rgba(57,135,229,0.22);
+      --accent: #3987e5; --good: #4cb36a; --warn: #e0a43a;
+    }
+  }
+  * { box-sizing: border-box; }
+  body { margin: 0; font: 14px/1.5 -apple-system, BlinkMacSystemFont, "Segoe UI", Roboto, Helvetica, Arial, sans-serif; background: var(--bg); color: var(--text); }
+  header { padding: 22px 28px 10px; max-width: 1400px; margin: 0 auto; }
+  header h1 { margin: 0 0 4px; font-size: 22px; letter-spacing: -0.01em; }
+  header p { margin: 0; color: var(--text-2); max-width: 900px; }
+  .layout { display: grid; grid-template-columns: 360px 1fr; gap: 20px; padding: 14px 28px 40px; max-width: 1400px; margin: 0 auto; }
+  @media (max-width: 980px) { .layout { grid-template-columns: 1fr; } }
+  .card { background: var(--surface); border: 1px solid var(--border); border-radius: 10px; padding: 16px 18px; }
+  .controls { position: sticky; top: 12px; align-self: start; max-height: calc(100vh - 24px); overflow: auto; }
+  h2 { font-size: 15px; margin: 0 0 10px; }
+  h3 { font-size: 12px; text-transform: uppercase; letter-spacing: 0.06em; color: var(--muted); margin: 18px 0 8px; font-weight: 600; }
+  label.ctl { display: block; margin: 0 0 12px; }
+  .ctl-top { display: flex; justify-content: space-between; align-items: baseline; gap: 8px; font-weight: 500; }
+  .ctl-top output { font-variant-numeric: tabular-nums; color: var(--text); font-weight: 600; }
+  .help { display: block; color: var(--muted); font-size: 12px; line-height: 1.4; margin-top: 2px; }
+  input[type=range] { width: 100%; accent-color: var(--accent); margin: 4px 0 0; }
+  select, input[type=number] { width: 100%; padding: 6px 8px; border-radius: 6px; border: 1px solid var(--border); background: var(--surface); color: var(--text); font: inherit; margin-top: 4px; }
+  .check { display: flex; gap: 8px; align-items: flex-start; margin: 0 0 12px; }
+  .check input { margin-top: 3px; accent-color: var(--accent); }
+  .btn { display: inline-block; border: 1px solid var(--border); background: var(--surface-2); color: var(--text); border-radius: 7px; padding: 8px 14px; font: inherit; font-weight: 600; cursor: pointer; }
+  .btn.primary { background: var(--accent); border-color: var(--accent); color: #fff; }
+  .btn:disabled { opacity: 0.5; cursor: default; }
+  .row { display: flex; gap: 8px; flex-wrap: wrap; align-items: center; }
+  details summary { cursor: pointer; color: var(--text-2); font-weight: 500; margin: 6px 0 10px; }
+  .progress { height: 6px; background: var(--surface-2); border-radius: 3px; overflow: hidden; margin-top: 10px; }
+  .progress > div { height: 100%; width: 0; background: var(--accent); transition: width 0.15s; }
+  .status { font-size: 12px; color: var(--muted); margin-top: 6px; min-height: 18px; }
+  .warn { color: var(--warn); }
+  .results { display: flex; flex-direction: column; gap: 20px; min-width: 0; }
+  .tiles { display: grid; grid-template-columns: repeat(4, minmax(0, 1fr)); gap: 12px; }
+  @media (max-width: 700px) { .tiles { grid-template-columns: repeat(2, 1fr); } }
+  .tile { background: var(--surface); border: 1px solid var(--border); border-radius: 10px; padding: 14px 16px; }
+  .tile .k { color: var(--text-2); font-size: 13px; }
+  .tile .v { font-size: 30px; font-weight: 650; letter-spacing: -0.02em; font-variant-numeric: tabular-nums; margin: 2px 0; }
+  .tile .r { color: var(--muted); font-size: 12px; }
+  .tile .d { font-size: 12px; margin-top: 4px; color: var(--text-2); }
+  .grid2 { display: grid; grid-template-columns: 1fr 1fr; gap: 20px; }
+  @media (max-width: 1150px) { .grid2 { grid-template-columns: 1fr; } }
+  .chart-title { font-weight: 600; margin: 0 0 2px; }
+  .chart-sub { color: var(--muted); font-size: 12px; margin: 0 0 10px; }
+  svg text { fill: var(--text-2); font-size: 11px; font-family: inherit; }
+  svg .axis { stroke: var(--border); }
+  svg .gridline { stroke: var(--grid); }
+  .legend { display: flex; gap: 14px; flex-wrap: wrap; font-size: 12px; color: var(--text-2); margin-top: 6px; }
+  .legend i { display: inline-block; width: 14px; height: 3px; border-radius: 2px; vertical-align: middle; margin-right: 6px; }
+  table { border-collapse: collapse; width: 100%; font-size: 13px; }
+  th, td { text-align: left; padding: 7px 8px; border-bottom: 1px solid var(--border); vertical-align: top; font-variant-numeric: tabular-nums; }
+  th { color: var(--muted); font-weight: 600; font-size: 12px; }
+  td.num, th.num { text-align: right; white-space: nowrap; }
+  .tip { position: fixed; pointer-events: none; background: var(--surface); border: 1px solid var(--border); border-radius: 8px; padding: 8px 10px; font-size: 12px; box-shadow: 0 4px 16px rgba(0,0,0,0.12); display: none; z-index: 10; max-width: 260px; }
+  .empty { color: var(--muted); padding: 30px 0; text-align: center; }
+  .explain p, .explain li { color: var(--text-2); }
+  .explain ol, .explain ul { padding-left: 20px; }
+  .pill { display: inline-block; font-size: 11px; padding: 1px 7px; border-radius: 10px; background: var(--surface-2); color: var(--text-2); margin-left: 6px; }
+  .swatch { display: inline-block; width: 10px; height: 10px; border-radius: 2px; margin-right: 6px; vertical-align: -1px; }
+</style>
+</head>
+<body>
+<header>
+  <h1>Kidney Exchange Simulator</h1>
+  <p>A Monte Carlo model of a kidney paired-exchange scheme. Each run plays out several years day by day: pairs join, matching runs find two-way swaps, three-way swaps and chains, some swaps fall through, and some patients leave. Repeating this many times with different random draws shows the likely result and how much it could vary. The default settings are calibrated to the UK Living Kidney Sharing Scheme.</p>
+</header>
+
+<div class="layout">
+  <!-- ======================= CONTROLS ======================= -->
+  <aside class="card controls">
+    <h2>Scenario</h2>
+    <label class="ctl">
+      <span class="ctl-top">Start from a preset</span>
+      <select id="preset"></select>
+      <span class="help" id="presetHelp"></span>
+    </label>
+
+    <h3>Who is in the pool</h3>
+    <label class="ctl"><span class="ctl-top">UK &amp; Europe pairs / year <output id="o_uk"></output></span>
+      <input type="range" id="uk" min="0" max="1500" step="2"><span class="help">Incompatible pairs joining each year. UK today: about 268.</span></label>
+    <label class="ctl"><span class="ctl-top">South Asia pairs / year <output id="o_sa"></output></span>
+      <input type="range" id="sa" min="0" max="1500" step="2"><span class="help">Blood groups follow Indian data: B is almost as common as O.</span></label>
+    <label class="ctl"><span class="ctl-top">Gulf / Middle East pairs / year <output id="o_me"></output></span>
+      <input type="range" id="me" min="0" max="1500" step="2"><span class="help">Blood groups follow Saudi data.</span></label>
+    <div class="check"><input type="checkbox" id="crossBorder"><label for="crossBorder"><b>Allow cross-border swaps</b><span class="help">Ticked: one shared international pool. Unticked: each region runs its own separate scheme.</span></label></div>
+
+    <h3>How matching works</h3>
+    <label class="ctl"><span class="ctl-top">Matching runs</span>
+      <select id="matchEveryDays">
+        <option value="91">Every 3 months (UK today)</option>
+        <option value="30">Monthly</option>
+        <option value="14">Every 2 weeks</option>
+        <option value="7">Weekly</option>
+        <option value="1">Daily (near-continuous)</option>
+      </select></label>
+    <label class="ctl"><span class="ctl-top">Largest swap</span>
+      <select id="maxCycle">
+        <option value="3">Two-way and three-way swaps</option>
+        <option value="2">Two-way swaps only</option>
+      </select></label>
+
+    <h3>Extra kidneys</h3>
+    <label class="ctl"><span class="ctl-top">Altruistic donors per 100 pairs <output id="o_altruisticPer100"></output></span>
+      <input type="range" id="altruisticPer100" min="0" max="40" step="1"><span class="help">Strangers who donate and start a chain: donor → pair → pair → waiting list. UK: about 13 (35 a year). A swap-only scheme has 0.</span></label>
+    <label class="ctl"><span class="ctl-top">Compatible pairs who join anyway <output id="o_compatibleJoin"></output></span>
+      <input type="range" id="compatibleJoin" min="0" max="0.6" step="0.01"><span class="help">Pairs who could transplant directly but join to help others, often bringing group O donors. UK: about 50 pairs a year (setting 20%).</span></label>
+
+    <h3>Rules</h3>
+    <div class="check"><input type="checkbox" id="protectO"><label for="protectO"><b>Group O kidneys only to group O patients</b><span class="help">Stops O kidneys going to A, B or AB patients, who have other options.</span></label></div>
+    <div class="check"><input type="checkbox" id="a2Donors"><label for="a2Donors"><b>Use A2-subtype donors for O and B patients</b><span class="help">About 20% of group A donors are A2 and can give to O or B patients with low anti-A antibodies.</span></label></div>
+
+    <h3>Logistics</h3>
+    <label class="ctl"><span class="ctl-top">Swaps that fall through <output id="o_fallThrough"></output></span>
+      <input type="range" id="fallThrough" min="0" max="0.6" step="0.01"><span class="help">Agreed swaps that don't go ahead, e.g. a positive final crossmatch or someone becomes unwell. UK: 28%.</span></label>
+    <label class="ctl"><span class="ctl-top">Extra days for an international swap <output id="o_extraDaysCrossBorder"></output></span>
+      <input type="range" id="extraDaysCrossBorder" min="0" max="180" step="5"><span class="help">Travel, visas and paperwork added when a swap crosses borders.</span></label>
+
+    <details>
+      <summary>Calibrated settings (change with care)</summary>
+      <label class="ctl"><span class="ctl-top">Donors the team would accept <output id="o_acceptance"></output></span>
+        <input type="range" id="acceptance" min="0.05" max="0.8" step="0.01"><span class="help">Of donors who are blood-group compatible and crossmatch-negative, the share the transplant team would accept on age, tissue-type mismatch, size and so on. Tuned to UK results: 20%.</span></label>
+      <label class="ctl"><span class="ctl-top">Average days from match to surgery <output id="o_daysToSurgery"></output></span>
+        <input type="range" id="daysToSurgery" min="30" max="400" step="5"><span class="help">Average time, including final tests, scheduling and other non-matching delays. Each swap takes at least 6 weeks, and some take much longer. Tuned to the UK median wait of 386 days: 260.</span></label>
+      <label class="ctl"><span class="ctl-top">Pairs leaving per year <output id="o_leaveRatePerYear"></output></span>
+        <input type="range" id="leaveRatePerYear" min="0" max="0.8" step="0.01"><span class="help">Share of waiting pairs who leave each year (illness, death, a deceased-donor kidney, withdrawal). Tuned: 40%.</span></label>
+      <label class="ctl"><span class="ctl-top">Priority strictness <output id="o_priorityNoise"></output></span>
+        <input type="range" id="priorityNoise" min="0" max="2" step="0.05"><span class="help">How strictly the hardest-to-match patients get first pick (lower = stricter). Tuned: 0.15.</span></label>
+    </details>
+
+    <h3>Monte Carlo</h3>
+    <label class="ctl"><span class="ctl-top">Number of runs</span>
+      <select id="runs">
+        <option value="10">10 (quick look)</option>
+        <option value="30">30</option>
+        <option value="50">50</option>
+        <option value="100">100 (for final figures)</option>
+      </select><span class="help">More runs give a more precise average and range but take longer.</span></label>
+
+    <div class="row">
+      <button class="btn primary" id="runBtn">Run simulation</button>
+      <button class="btn" id="saveBtn" disabled>Save to comparison</button>
+    </div>
+    <div class="progress"><div id="bar"></div></div>
+    <div class="status" id="status"></div>
+  </aside>
+
+  <!-- ======================= RESULTS ======================= -->
+  <main class="results">
+    <div class="tiles" id="tiles"></div>
+
+    <section class="card">
+      <p class="chart-title">How quickly patients get a kidney</p>
+      <p class="chart-sub">Share of everyone who joined who has been transplanted, by months since joining. The line is the average across runs; the shaded band covers 90% of runs. Saved scenarios ticked "Show on chart" appear for comparison.</p>
+      <div id="curve"></div>
+      <div class="legend" id="curveLegend"></div>
+    </section>
+
+    <div class="grid2">
+      <section class="card">
+        <p class="chart-title">Who gets transplanted: by blood group</p>
+        <p class="chart-sub">Share of each group transplanted. Whiskers show the 90% range across runs. Grey ticks show the real UK figures (NHSBT 2021–25).</p>
+        <div id="byGroup"></div>
+      </section>
+      <section class="card">
+        <p class="chart-title">Who gets transplanted: by antibody level</p>
+        <p class="chart-sub">Calculated reaction frequency: the share of donors the patient would react against. Grey ticks show the real UK figures.</p>
+        <div id="byBand"></div>
+      </section>
+    </div>
+
+    <div class="grid2">
+      <section class="card">
+        <p class="chart-title">The Monte Carlo spread</p>
+        <p class="chart-sub">Each dot is one simulated version of history: the share of pairs transplanted in that run. A tight cluster means the result is reliable; a wide one means luck matters.</p>
+        <div id="spread"></div>
+      </section>
+      <section class="card">
+        <p class="chart-title">Time from joining to transplant</p>
+        <p class="chart-sub">For patients who were transplanted, all runs pooled. Months since joining.</p>
+        <div id="waits"></div>
+      </section>
+    </div>
+
+    <section class="card" id="regionCard" style="display:none">
+      <p class="chart-title">By region</p>
+      <p class="chart-sub">Share of each region's pairs transplanted, with the 90% range across runs.</p>
+      <div id="byRegion"></div>
+    </section>
+
+    <section class="card">
+      <div class="row" style="justify-content:space-between">
+        <div><p class="chart-title">Scenario comparison</p>
+        <p class="chart-sub">Save runs to compare them side by side. Figures are averages, with the 90% range in brackets.</p></div>
+        <div class="row"><button class="btn" id="csvBtn">Download as CSV</button><button class="btn" id="clearBtn">Clear</button></div>
+      </div>
+      <div id="compare"><div class="empty">Run a scenario and press "Save to comparison".</div></div>
+    </section>
+
+    <section class="card explain">
+      <h2>How the model works</h2>
+      <ol>
+        <li><b>Pairs arrive.</b> Each day new donor–recipient pairs are created at the chosen rate. Each gets donor and recipient blood groups (from that region's frequencies) and a recipient antibody level. Pairs incompatible with each other always join; a share of compatible pairs also join.</li>
+        <li><b>Who can give to whom.</b> For each donor and each other patient, the model decides once whether that kidney could go to that patient. Three things must be true: the blood groups are compatible; the crossmatch is negative (a patient with a 95% antibody level reacts to about 95% of donors); and the transplant team would accept the donor on other grounds.</li>
+        <li><b>Matching runs.</b> On the chosen timetable, the computer looks for two-way swaps (A↔B), three-way swaps (A→B→C→A) and altruistic chains (donor → pair → pair → waiting list). The hardest-to-match patients go first. Real schemes use exact optimisation; this model uses a fast "hardest first" search, which is close but may find slightly fewer swaps in big pools.</li>
+        <li><b>Swaps go ahead or fall through.</b> Each agreed swap may fall through. If it does, the pairs go back into the pool. If it goes ahead, the operation happens after a match-to-surgery delay (at least 6 weeks, 260 days on average, varying from swap to swap), plus the extra international days if the swap crosses borders.</li>
+        <li><b>Pairs leave.</b> Waiting pairs can leave at any time without a transplant.</li>
+        <li><b>Measuring.</b> The model runs for 2 years to fill the pool. It then follows everyone who joins over the next 3 years, each for up to 3 more years. All figures describe that group of patients.</li>
+        <li><b>Monte Carlo.</b> All of this is repeated many times with different random numbers. The average is the expected result; the 90% range shows how much it could vary.</li>
+      </ol>
+      <h3>Calibration against the real UK scheme</h3>
+      <p>The four "calibrated" settings were tuned so that the <i>UK today</i> preset reproduces published NHSBT figures for the UK Living Kidney Sharing Scheme (Annual Report on Living Donor Kidney Transplantation 2024/25):</p>
+      <table id="calib"><thead><tr><th>Measure</th><th class="num">Real UK</th><th class="num">Model (UK today)</th></tr></thead><tbody>
+        <tr><td>Registered patients transplanted</td><td class="num">51%</td><td class="num" data-k="pctTransplanted">run to see</td></tr>
+        <tr><td>Median days from joining to transplant</td><td class="num">386</td><td class="num" data-k="medianWait">run to see</td></tr>
+        <tr><td>Group O patients transplanted</td><td class="num">≈40%</td><td class="num" data-k="g0">run to see</td></tr>
+        <tr><td>Antibody level 100%: transplanted</td><td class="num">3%</td><td class="num" data-k="b4">run to see</td></tr>
+        <tr><td>Agreed swaps that fall through</td><td class="num">28–29%</td><td class="num" data-k="failRate">run to see</td></tr>
+      </tbody></table>
+      <h3>Main limitations</h3>
+      <ul>
+        <li>Tissue type is not modelled gene by gene. It is summarised by each patient's antibody level and the "donors accepted" setting.</li>
+        <li>The matching search is fast but not exactly optimal, so large pools may slightly understate what an optimiser would achieve.</li>
+        <li>Pool sizes are limited to about 1,500 pairs a year per region so the browser stays responsive. Results level off well before this size.</li>
+        <li>Patients in other regions are assumed to have the same antibody profile and clinical behaviour as UK patients. Only their blood groups differ.</li>
+      </ul>
+    </section>
+  </main>
+</div>
+<div class="tip" id="tip"></div>
+
+<script id="engine">
+/*
+ * Kidney paired exchange - Monte Carlo simulation engine.
+ *
+ * One call to simulate(params, seed) plays out several years of an exchange
+ * scheme day by day: incompatible donor-recipient pairs join, matching runs
+ * happen on a timetable, agreed swaps either go ahead or fall through, and
+ * pairs who wait too long leave. Running it many times with different random
+ * seeds (runMany) gives the spread of outcomes - the Monte Carlo part.
+ *
+ * Works in a browser (global KidneySim) and in Node (module.exports).
+ */
+(function (root) {
+  'use strict';
+
+  // ---------------------------------------------------------------------------
+  // Fixed inputs (sources in README.md)
+  // ---------------------------------------------------------------------------
+
+  // ABO blood group frequencies by region.
+  const REGIONS = {
+    uk: { name: 'UK & Europe', abo: { O: 0.47, A: 0.42, B: 0.08, AB: 0.03 } },
+    sa: { name: 'South Asia', abo: { O: 0.371, A: 0.229, B: 0.323, AB: 0.077 } },
+    me: { name: 'Gulf / Middle East', abo: { O: 0.518, A: 0.259, B: 0.18, AB: 0.043 } },
+  };
+  const REGION_KEYS = Object.keys(REGIONS);
+  const ABO = ['O', 'A', 'B', 'AB'];
+
+  // Sensitisation (calculated reaction frequency, cRF) of patients who have a
+  // willing living donor, before anyone decides to join. Each band:
+  // [share, lowest, highest, label]. The shares are back-calculated so that the
+  // pairs who JOIN match the NHSBT 2021-25 registrations (Table 4.3):
+  // 0-9% 43%, 10-84% 30%, 85-94% 7%, 95-99% 13%, 100% 7%.
+  const CPRA_BANDS = [
+    [0.619, 0.00, 0.09, '0-9%'],
+    [0.236, 0.10, 0.84, '10-84%'],
+    [0.041, 0.85, 0.94, '85-94%'],
+    [0.067, 0.95, 0.99, '95-99%'],
+    [0.037, 0.998, 1.0, '100%'],
+  ];
+
+  const DEFAULTS = {
+    arrivals: { uk: 268, sa: 0, me: 0 }, // incompatible pairs joining per year (NHSBT 2019-25: 1,611 in 6 years)
+    crossBorder: true,           // can pairs from different regions swap?
+    matchEveryDays: 91,          // 91 = quarterly (UK today)
+    maxCycle: 3,                 // 2 = two-way swaps only, 3 = also three-way
+    altruisticPer100: 13,        // altruistic donors starting chains, per 100 pairs joining (UK: ~35 a year for ~268 pairs)
+    maxChainPairs: 2,            // pairs in a chain before it ends on the waiting list
+    compatibleJoin: 0.2,         // share of compatible pairs that join anyway (gives ~50 a year at UK scale, as NHSBT reports)
+    protectO: false,             // group O donors may only give to group O patients
+    a2Donors: false,             // use A2-subtype donors for O/B patients with low antibody levels
+    searchCap: 4000,             // max links checked per patient when looking for a three-way swap (speed limit)
+    priorityNoise: 0.15,         // how strictly hardest-to-match patients go first (lower = stricter); calibrated
+    acceptance: 0.2,             // share of crossmatch-negative, blood-group-compatible donors the clinical team would accept (age, HLA mismatch, size, distance); calibrated
+    fallThrough: 0.28,           // share of agreed swaps that don't go ahead (NHSBT: 72% proceed)
+    daysToSurgery: 260,          // matching run to operation, including tests, scheduling and other non-matching delays; calibrated to the 386-day UK median
+    extraDaysCrossBorder: 30,    // extra time for travel, visas and paperwork
+    daysToDiscoverFailure: 45,   // how long before a failed swap is known and pairs re-enter
+    leaveRatePerYear: 0.4,       // share of waiting pairs who leave each year (illness, death, deceased-donor kidney, withdraw)
+    warmupYears: 2,              // run-in so the pool fills up before measuring
+    cohortYears: 3,              // pairs joining in this window are followed
+    followUpYears: 3,            // extra time to see what happens to them
+  };
+
+  // ---------------------------------------------------------------------------
+  // Random numbers (seeded, so every run can be reproduced)
+  // ---------------------------------------------------------------------------
+  function makeRng(seed) {
+    let a = seed >>> 0;
+    return function () {
+      a = (a + 0x6d2b79f5) >>> 0;
+      let t = a;
+      t = Math.imul(t ^ (t >>> 15), t | 1);
+      t ^= t + Math.imul(t ^ (t >>> 7), t | 61);
+      return ((t ^ (t >>> 14)) >>> 0) / 4294967296;
+    };
+  }
+  function pickABO(rng, dist) {
+    const u = rng();
+    let c = 0;
+    for (const g of ABO) { c += dist[g]; if (u < c) return g; }
+    return 'O';
+  }
+  function poisson(rng, mean) {
+    if (mean <= 0) return 0;
+    if (mean > 30) { // normal approximation for big means
+      const u1 = rng() || 1e-12, u2 = rng();
+      const z = Math.sqrt(-2 * Math.log(u1)) * Math.cos(2 * Math.PI * u2);
+      return Math.max(0, Math.round(mean + z * Math.sqrt(mean)));
+    }
+    const L = Math.exp(-mean);
+    let k = 0, p = 1;
+    do { k++; p *= rng(); } while (p > L);
+    return k - 1;
+  }
+  function drawCpra(rng) {
+    const u = rng();
+    let c = 0;
+    for (const [w, lo, hi] of CPRA_BANDS) {
+      c += w;
+      if (u < c) return lo + (hi - lo) * rng();
+    }
+    return 0;
+  }
+
+  // Blood group rule: O gives to all; A to A/AB; B to B/AB; AB to AB.
+  function aboOK(d, r) {
+    return d === 'O' || r === 'AB' || d === r;
+  }
+
+  // Share of willing pairs (in a region) who are incompatible, so the number
+  // of willing pairs can be scaled to give the requested joiners per year.
+  function incompatibleShare(regionKey, seed) {
+    const rng = makeRng(seed);
+    const dist = REGIONS[regionKey].abo;
+    let inc = 0;
+    const N = 40000;
+    for (let i = 0; i < N; i++) {
+      const d = pickABO(rng, dist), r = pickABO(rng, dist), c = drawCpra(rng);
+      if (!aboOK(d, r) || rng() < c) inc++;
+    }
+    return inc / N;
+  }
+
+  // ---------------------------------------------------------------------------
+  // One simulated history
+  // ---------------------------------------------------------------------------
+  function simulate(userParams, seed) {
+    const P = Object.assign({}, DEFAULTS, userParams || {});
+    P.arrivals = Object.assign({}, DEFAULTS.arrivals, (userParams || {}).arrivals || {});
+    const rng = makeRng(seed);
+    const DAY0 = P.warmupYears * 365;
+    const DAY1 = DAY0 + P.cohortYears * 365;
+    const T = DAY1 + P.followUpYears * 365;
+    const leavePerDay = 1 - Math.pow(1 - P.leaveRatePerYear, 1 / 365);
+
+    // Willing pairs per day for each region.
+    const willingPerDay = {};
+    for (const k of REGION_KEYS) {
+      const n = P.arrivals[k] || 0;
+      willingPerDay[k] = n > 0 ? n / incompatibleShare(k, 12345) / 365 : 0;
+    }
+
+    const pairs = [];          // every pair ever created, indexed by id
+    const OUT = new Map();     // id -> Set of pair ids this pair's donor can give to
+    const IN = new Map();      // id -> Set of pair ids whose donor can give to this pair
+    let active = [];           // pairs in the scheme (waiting or in a pending swap)
+    let ndads = [];            // altruistic donors waiting to start a chain
+    const pending = [];        // agreed swaps waiting to happen or fall through
+
+    const stats = {
+      cycles2: 0, cycles3: 0, chains: 0, failed: 0,
+      txPairs: 0, txFromChains: 0, txWaitingList: 0, txCrossBorder: 0,
+      poolSamples: 0, poolSum: 0,
+    };
+
+    // Can donor of pair d (or altruistic donor) give to recipient of pair r?
+    function edge(dABO, dA2, dRegion, r) {
+      if (!P.crossBorder && dRegion !== r.region) return false;
+      let ok = aboOK(dABO, r.rABO);
+      if (!ok && P.a2Donors && dA2 && (r.rABO === 'O' || r.rABO === 'B') && r.lowTitre) ok = true;
+      if (!ok) return false;
+      if (P.protectO && dABO === 'O' && r.rABO !== 'O') return false;
+      if (rng() < r.cpra) return false;          // positive crossmatch
+      return rng() < P.acceptance;                // clinical acceptance criteria
+    }
+
+    function addPair(day, region, compatible, dABO, rABO, cpra) {
+      const p = {
+        id: pairs.length, region, dABO, rABO, cpra,
+        dA2: dABO === 'A' && rng() < 0.2,
+        lowTitre: rABO === 'O' ? rng() < 0.63 : rng() < 0.97,
+        compatible, arrive: day, status: 'pool', runsUnmatched: 0, txDay: -1, dirty: true,
+      };
+      pairs.push(p);
+      const out = new Set(), inn = new Set();
+      for (const q of active) {
+        if (edge(p.dABO, p.dA2, p.region, q)) { out.add(q.id); IN.get(q.id).add(p.id); q.dirty = true; }
+        if (edge(q.dABO, q.dA2, q.region, p)) { inn.add(q.id); OUT.get(q.id).add(p.id); q.dirty = true; }
+      }
+      OUT.set(p.id, out); IN.set(p.id, inn);
+      for (const n of ndads) if (edge(n.abo, n.a2, n.region, p)) n.out.add(p.id);
+      active.push(p);
+    }
+
+    function removeFromGraph(p) {
+      for (const j of OUT.get(p.id)) IN.get(j).delete(p.id);
+      for (const j of IN.get(p.id)) OUT.get(j).delete(p.id);
+      OUT.delete(p.id); IN.delete(p.id);
+      for (const n of ndads) n.out.delete(p.id);
+    }
+
+    function addNdad(day) {
+      // Altruistic donors come from the regions in proportion to pair numbers.
+      const tot = REGION_KEYS.reduce((s, k) => s + (P.arrivals[k] || 0), 0) || 1;
+      let u = rng() * tot, region = 'uk';
+      for (const k of REGION_KEYS) { u -= P.arrivals[k] || 0; if (u <= 0) { region = k; break; } }
+      const abo = pickABO(rng, REGIONS[region].abo);
+      const n = { abo, a2: abo === 'A' && rng() < 0.2, region, arrive: day, runs: 0, out: new Set() };
+      for (const q of active) if (edge(abo, n.a2, region, q)) n.out.add(q.id);
+      ndads.push(n);
+    }
+
+    const inSize = (id) => IN.get(id).size;
+
+    function matchingRun(day) {
+      const avail = active.filter((p) => p.status === 'pool');
+      // Hardest-to-match first (fewest compatible donors), random tie-break.
+      const key = new Map();
+      for (const p of avail) key.set(p.id, inSize(p.id) * (P.priorityNoise + rng()) + rng() * 0.5);
+      avail.sort((a, b) => key.get(a.id) - key.get(b.id));
+      const used = new Set();
+      const free = (id) => !used.has(id) && pairs[id].status === 'pool';
+
+      for (const p of avail) {
+        if (used.has(p.id)) continue;
+        // A pair whose links haven't changed since the last run can't have a new
+        // swap of its own; it can still be picked as a partner by others.
+        if (!p.dirty) continue;
+        p.dirty = false;
+        const outP = OUT.get(p.id), inP = IN.get(p.id);
+        // Two-way swap: p gives to j and j gives to p.
+        let best = -1, bestScore = Infinity;
+        for (const j of inP) {
+          if (!free(j) || !outP.has(j)) continue;
+          const s = key.get(j);
+          if (s < bestScore) { bestScore = s; best = j; }
+        }
+        if (best >= 0) { propose(day, [p.id, best], null); used.add(p.id); used.add(best); continue; }
+        if (P.maxCycle < 3) continue;
+        // Three-way swap: p -> j -> k -> p.
+        let bj = -1, bk = -1; bestScore = Infinity; let work = 0;
+        for (const k of inP) {
+          if (!free(k)) continue;
+          for (const j of IN.get(k)) {
+            if (++work > P.searchCap) break;
+            if (j === p.id || !free(j) || !outP.has(j)) continue;
+            const s = key.get(j) + key.get(k);
+            if (s < bestScore) { bestScore = s; bj = j; bk = k; }
+          }
+          if (work > P.searchCap) break;
+        }
+        if (bj >= 0) { propose(day, [p.id, bj, bk], null); used.add(p.id); used.add(bj); used.add(bk); }
+      }
+
+      // Chains from altruistic donors: donor -> pair -> (pair) -> waiting list.
+      const keep = [];
+      for (const n of ndads) {
+        let first = -1, s1 = Infinity;
+        for (const j of n.out) if (free(j) && key.get(j) < s1) { s1 = key.get(j); first = j; }
+        if (first < 0) {
+          n.runs++;
+          if (n.runs >= 2) { stats.txWaitingList++; } else keep.push(n); // gives to waiting list instead
+          continue;
+        }
+        const chain = [first];
+        used.add(first);
+        if (P.maxChainPairs >= 2) {
+          let second = -1, s2 = Infinity;
+          for (const j of OUT.get(first)) if (free(j) && key.get(j) < s2) { s2 = key.get(j); second = j; }
+          if (second >= 0) { chain.push(second); used.add(second); }
+        }
+        propose(day, chain, n);
+      }
+      ndads = keep;
+
+      // Compatible pairs who weren't matched in two runs just go ahead directly.
+      for (const p of avail) {
+        if (!p.compatible || used.has(p.id)) continue;
+        p.runsUnmatched++;
+        if (p.runsUnmatched >= 2) { p.status = 'direct'; removeFromGraph(p); }
+      }
+      active = active.filter((p) => p.status === 'pool' || p.status === 'pending');
+    }
+
+    function propose(day, ids, ndad) {
+      for (const id of ids) pairs[id].status = 'pending';
+      const regions = new Set(ids.map((id) => pairs[id].region));
+      if (ndad) regions.add(ndad.region);
+      const cross = regions.size > 1;
+      const success = rng() >= P.fallThrough;
+      // Time to surgery varies: at least 6 weeks (final tests), with a long tail
+      // (scheduling, illness, re-testing). The average is daysToSurgery.
+      const minDays = Math.min(42, P.daysToSurgery);
+      const delay = minDays - (P.daysToSurgery - minDays) * Math.log(1 - rng());
+      const when = success
+        ? day + Math.round(delay) + (cross ? P.extraDaysCrossBorder : 0)
+        : day + P.daysToDiscoverFailure;
+      pending.push({ when, ids, ndad, success, cross });
+    }
+
+    function resolve(item, day) {
+      if (item.success) {
+        for (const id of item.ids) {
+          const p = pairs[id];
+          p.status = 'tx'; p.txDay = day; p.cross = item.cross;
+          removeFromGraph(p);
+          if (!p.compatible) { stats.txPairs++; if (item.cross) stats.txCrossBorder++; if (item.ndad) stats.txFromChains++; }
+        }
+        if (item.ndad) { stats.chains++; stats.txWaitingList++; }
+        else if (item.ids.length === 2) stats.cycles2++; else stats.cycles3++;
+      } else {
+        stats.failed++;
+        for (const id of item.ids) { pairs[id].status = 'pool'; pairs[id].dirty = true; }
+        // The swap failed for a reason (e.g. positive crossmatch): remove one of
+        // its links so the same swap isn't proposed again.
+        const ids = item.ids;
+        if (item.ndad) {
+          item.ndad.out.delete(ids[0]);
+          item.ndad.runs = 0;
+          ndads.push(item.ndad);
+        } else {
+          const i = Math.floor(rng() * ids.length);
+          const a = ids[i], b = ids[(i + 1) % ids.length];
+          OUT.get(a).delete(b); IN.get(b).delete(a);
+        }
+      }
+    }
+
+    // ---- main loop, one step per day ----
+    const totalArrivals = REGION_KEYS.reduce((s, k) => s + (P.arrivals[k] || 0), 0);
+    const ndadPerDay = (P.altruisticPer100 / 100) * totalArrivals / 365;
+    for (let day = 0; day < T; day++) {
+      for (const k of REGION_KEYS) {
+        const n = poisson(rng, willingPerDay[k]);
+        for (let i = 0; i < n; i++) {
+          const dist = REGIONS[k].abo;
+          const d = pickABO(rng, dist), r = pickABO(rng, dist), c = drawCpra(rng);
+          const incompatible = !aboOK(d, r) || rng() < c;
+          if (incompatible) addPair(day, k, false, d, r, c);
+          else if (P.compatibleJoin > 0 && rng() < P.compatibleJoin) addPair(day, k, true, d, r, c);
+        }
+      }
+      const nn = poisson(rng, ndadPerDay);
+      for (let i = 0; i < nn; i++) addNdad(day);
+
+      // Swaps that happen (or fall through) today.
+      let anyResolved = false;
+      for (let i = pending.length - 1; i >= 0; i--) {
+        if (pending[i].when <= day) { const it = pending[i]; pending.splice(i, 1); resolve(it, day); anyResolved = true; }
+      }
+      if (anyResolved) active = active.filter((p) => p.status === 'pool' || p.status === 'pending');
+
+      // Pairs leaving the scheme without a transplant.
+      let anyLeft = false;
+      for (const p of active) {
+        if (p.status === 'pool' && rng() < leavePerDay) { p.status = 'left'; p.leftDay = day; removeFromGraph(p); anyLeft = true; }
+      }
+      if (anyLeft) active = active.filter((p) => p.status === 'pool' || p.status === 'pending');
+
+      if (day % P.matchEveryDays === P.matchEveryDays - 1) matchingRun(day);
+
+      if (day >= DAY0 && day % 7 === 0) {
+        stats.poolSamples++;
+        stats.poolSum += active.reduce((s, p) => s + (p.compatible ? 0 : 1), 0);
+      }
+    }
+
+    // ---- results for the cohort (incompatible pairs who joined DAY0..DAY1) ----
+    const cohort = pairs.filter((p) => !p.compatible && p.arrive >= DAY0 && p.arrive < DAY1);
+    const tx = cohort.filter((p) => p.status === 'tx');
+    const waits = tx.map((p) => p.txDay - p.arrive).sort((a, b) => a - b);
+    const share = (arr, f) => {
+      const g = arr.filter(f);
+      return g.length ? g.filter((p) => p.status === 'tx').length / g.length : NaN;
+    };
+    const curve = []; // share of cohort transplanted by each month after joining
+    for (let m = 0; m <= 36; m++) {
+      const lim = m * 30.4;
+      curve.push(cohort.length ? tx.filter((p) => p.txDay - p.arrive <= lim).length / cohort.length : 0);
+    }
+    const years = (T - DAY0) / 365;
+    const byRegion = {};
+    for (const k of REGION_KEYS) {
+      if (!(P.arrivals[k] > 0)) continue;
+      byRegion[k] = share(cohort, (p) => p.region === k);
+    }
+    return {
+      cohortSize: cohort.length,
+      pctTransplanted: cohort.length ? tx.length / cohort.length : 0,
+      pctWithinYear: cohort.length ? tx.filter((p) => p.txDay - p.arrive <= 365).length / cohort.length : 0,
+      pctLeft: cohort.length ? cohort.filter((p) => p.status === 'left').length / cohort.length : 0,
+      medianWait: waits.length ? waits[Math.floor(waits.length / 2)] : NaN,
+      pctO: share(cohort, (p) => p.rABO === 'O'),
+      pctNonO: share(cohort, (p) => p.rABO !== 'O'),
+      pctHighlySensitised: share(cohort, (p) => p.cpra >= 0.85),
+      byBand: CPRA_BANDS.map(([, lo, hi]) => share(cohort, (p) => p.cpra >= lo - 1e-9 && p.cpra <= hi + 1e-9)),
+      bandShare: CPRA_BANDS.map(([, lo, hi]) => cohort.length ? cohort.filter((p) => p.cpra >= lo - 1e-9 && p.cpra <= hi + 1e-9).length / cohort.length : 0),
+      byGroup: ABO.map((g) => share(cohort, (p) => p.rABO === g)),
+      compatiblePerYear: pairs.filter((p) => p.compatible).length / (T / 365),
+      pctNotHS: share(cohort, (p) => p.cpra < 0.85),
+      byRegion,
+      shareO: cohort.length ? cohort.filter((p) => p.rABO === 'O').length / cohort.length : 0,
+      shareHS: cohort.length ? cohort.filter((p) => p.cpra >= 0.85).length / cohort.length : 0,
+      avgPool: stats.poolSamples ? stats.poolSum / stats.poolSamples : 0,
+      pairTxPerYear: stats.txPairs / (T / 365),
+      waitingListPerYear: stats.txWaitingList / (T / 365),
+      crossBorderShare: stats.txPairs ? stats.txCrossBorder / stats.txPairs : 0,
+      chainShare: stats.txPairs ? stats.txFromChains / stats.txPairs : 0,
+      cycles2: stats.cycles2, cycles3: stats.cycles3, chains: stats.chains,
+      failRate: stats.failed / Math.max(1, stats.failed + stats.cycles2 + stats.cycles3 + stats.chains),
+      curve,
+      waits,
+      years,
+    };
+  }
+
+  // ---------------------------------------------------------------------------
+  // Monte Carlo: many runs, then averages and 90% ranges
+  // ---------------------------------------------------------------------------
+  function quantile(sorted, q) {
+    if (!sorted.length) return NaN;
+    const i = (sorted.length - 1) * q, lo = Math.floor(i), hi = Math.ceil(i);
+    return sorted[lo] + (sorted[hi] - sorted[lo]) * (i - lo);
+  }
+  function summarise(runs) {
+    const keys = ['pctTransplanted', 'pctWithinYear', 'pctLeft', 'medianWait', 'pctO', 'pctNonO',
+      'pctHighlySensitised', 'pctNotHS', 'shareO', 'shareHS', 'avgPool', 'pairTxPerYear',
+      'waitingListPerYear', 'crossBorderShare', 'chainShare', 'failRate', 'cohortSize', 'compatiblePerYear'];
+    const out = {};
+    for (const k of keys) {
+      const v = runs.map((r) => r[k]).filter((x) => !Number.isNaN(x)).sort((a, b) => a - b);
+      const mean = v.reduce((s, x) => s + x, 0) / (v.length || 1);
+      out[k] = { mean, lo: quantile(v, 0.05), hi: quantile(v, 0.95), values: runs.map((r) => r[k]) };
+    }
+    for (const k of ['byBand', 'bandShare', 'byGroup']) {
+      out[k] = runs[0][k].map((_, i) => {
+        const v = runs.map((r) => r[k][i]).filter((x) => !Number.isNaN(x)).sort((a, b) => a - b);
+        return { mean: v.reduce((s, x) => s + x, 0) / (v.length || 1), lo: quantile(v, 0.05), hi: quantile(v, 0.95) };
+      });
+    }
+    out.byRegion = {};
+    for (const reg of Object.keys(runs[0].byRegion)) {
+      const v = runs.map((r) => r.byRegion[reg]).filter((x) => !Number.isNaN(x)).sort((a, b) => a - b);
+      out.byRegion[reg] = { mean: v.reduce((s, x) => s + x, 0) / (v.length || 1), lo: quantile(v, 0.05), hi: quantile(v, 0.95) };
+    }
+    const n = runs[0].curve.length;
+    out.curve = [];
+    for (let m = 0; m < n; m++) {
+      const v = runs.map((r) => r.curve[m]).sort((a, b) => a - b);
+      out.curve.push({ month: m, mean: v.reduce((s, x) => s + x, 0) / v.length, lo: quantile(v, 0.05), hi: quantile(v, 0.95) });
+    }
+    out.waits = [].concat(...runs.map((r) => r.waits)).sort((a, b) => a - b);
+    out.runs = runs.length;
+    return out;
+  }
+  function runMany(params, nRuns, baseSeed, onProgress) {
+    const runs = [];
+    for (let i = 0; i < nRuns; i++) {
+      runs.push(simulate(params, (baseSeed || 1) * 7919 + i * 104729));
+      if (onProgress) onProgress(i + 1, nRuns);
+    }
+    return summarise(runs);
+  }
+
+  const api = { REGIONS, ABO, CPRA_BANDS, DEFAULTS, simulate, runMany, summarise, incompatibleShare };
+  if (typeof module !== 'undefined' && module.exports) module.exports = api;
+  else root.KidneySim = api;
+})(typeof self !== 'undefined' ? self : this);
+
+</script>
+<script>
+(function () {
+  'use strict';
+  const S = KidneySim;
+  const $ = (id) => document.getElementById(id);
+  const UK = S.DEFAULTS;
+
+  // ------------------------------------------------------------------ presets
+  const PRESETS = [
+    { id: 'uk', name: 'UK today (calibrated)', help: 'The UK scheme as it runs now: about 268 incompatible pairs a year, matching every 3 months, three-way swaps, altruistic chains and some compatible pairs.', p: {} },
+    { id: 'uk-weekly', name: 'UK, matching weekly', help: 'Same pool as the UK today, but matching every week instead of every 3 months.', p: { matchEveryDays: 7 } },
+    { id: 'uk-2way', name: 'UK, two-way swaps only', help: 'What the UK would lose without three-way swaps.', p: { maxCycle: 2 } },
+    { id: 'uk-swaponly', name: 'UK, swap-only (no altruistic donors or compatible pairs)', help: 'Every patient must bring a donor and every donor gives only as part of a swap.', p: { altruisticPer100: 0, compatibleJoin: 0 } },
+    { id: 'three-separate', name: 'Three regions, separate national schemes', help: 'UK, South Asia and the Gulf each with UK-sized pools, matching only within their own region.', p: { arrivals: { uk: 268, sa: 268, me: 268 }, crossBorder: false } },
+    { id: 'three-shared', name: 'Three regions, one shared international pool', help: 'The same three regions, but pairs can swap across borders. Each cross-border swap adds 30 days for travel.', p: { arrivals: { uk: 268, sa: 268, me: 268 }, crossBorder: true } },
+    { id: 'three-shared-swaponly', name: 'Shared international pool, swap-only', help: 'Your proposed model: international pool, every recipient brings a donor, no altruistic chains.', p: { arrivals: { uk: 268, sa: 268, me: 268 }, crossBorder: true, altruisticPer100: 0, compatibleJoin: 0 } },
+    { id: 'three-shared-best', name: 'Shared pool + O protection + A2 donors + weekly', help: 'The shared international pool with the rules that help group O patients, matching weekly.', p: { arrivals: { uk: 268, sa: 268, me: 268 }, crossBorder: true, protectO: true, a2Donors: true, matchEveryDays: 7 } },
+    { id: 'big', name: 'Large international pool (3 × 1,000 pairs)', help: 'A much bigger pool, matching weekly. This takes noticeably longer to run.', p: { arrivals: { uk: 1000, sa: 1000, me: 1000 }, crossBorder: true, matchEveryDays: 7 } },
+  ];
+  const sliders = {
+    uk: (v) => v, sa: (v) => v, me: (v) => v,
+    altruisticPer100: (v) => v, compatibleJoin: (v) => Math.round(v * 100) + '%', fallThrough: (v) => Math.round(v * 100) + '%',
+    extraDaysCrossBorder: (v) => v + ' days', acceptance: (v) => Math.round(v * 100) + '%', daysToSurgery: (v) => v + ' days',
+    leaveRatePerYear: (v) => Math.round(v * 100) + '%', priorityNoise: (v) => (+v).toFixed(2),
+  };
+
+  const presetSel = $('preset');
+  for (const pr of PRESETS) { const o = document.createElement('option'); o.value = pr.id; o.textContent = pr.name; presetSel.appendChild(o); }
+  const customOpt = document.createElement('option'); customOpt.value = 'custom'; customOpt.textContent = 'Custom'; presetSel.appendChild(customOpt);
+
+  function applyPreset(id) {
+    const pr = PRESETS.find((x) => x.id === id); if (!pr) return;
+    const p = Object.assign({}, UK, pr.p); p.arrivals = Object.assign({}, UK.arrivals, pr.p.arrivals || {});
+    $('uk').value = p.arrivals.uk; $('sa').value = p.arrivals.sa; $('me').value = p.arrivals.me;
+    for (const k of ['altruisticPer100', 'compatibleJoin', 'fallThrough', 'extraDaysCrossBorder', 'acceptance', 'daysToSurgery', 'leaveRatePerYear', 'priorityNoise']) $(k).value = p[k];
+    $('crossBorder').checked = p.crossBorder; $('protectO').checked = p.protectO; $('a2Donors').checked = p.a2Donors;
+    $('matchEveryDays').value = String(p.matchEveryDays); $('maxCycle').value = String(p.maxCycle);
+    presetSel.value = id; $('presetHelp').textContent = pr.help; refreshOutputs();
+  }
+  function refreshOutputs() {
+    for (const [k, f] of Object.entries(sliders)) $('o_' + k).textContent = f($(k).value);
+    const tot = +$('uk').value + +$('sa').value + +$('me').value;
+    $('o_altruisticPer100').textContent = $('altruisticPer100').value + ' (≈' + Math.round(+$('altruisticPer100').value / 100 * tot) + '/yr)';
+    const est = estimateSeconds();
+    $('status').innerHTML = est > 60 ? '<span class="warn">This scenario may take about ' + Math.round(est / 60) + ' min. Try fewer runs first.</span>' : '';
+  }
+  function readParams() {
+    return {
+      arrivals: { uk: +$('uk').value, sa: +$('sa').value, me: +$('me').value },
+      crossBorder: $('crossBorder').checked, matchEveryDays: +$('matchEveryDays').value, maxCycle: +$('maxCycle').value,
+      altruisticPer100: +$('altruisticPer100').value, compatibleJoin: +$('compatibleJoin').value,
+      protectO: $('protectO').checked, a2Donors: $('a2Donors').checked, fallThrough: +$('fallThrough').value,
+      extraDaysCrossBorder: +$('extraDaysCrossBorder').value, acceptance: +$('acceptance').value,
+      daysToSurgery: +$('daysToSurgery').value, leaveRatePerYear: +$('leaveRatePerYear').value, priorityNoise: +$('priorityNoise').value,
+    };
+  }
+  function estimateSeconds() {
+    const p = readParams(); const tot = p.arrivals.uk + p.arrivals.sa + p.arrivals.me;
+    const perRun = 0.2 * Math.pow(Math.max(tot, 1) / 268, p.crossBorder ? 1.9 : 1.1) * (p.matchEveryDays <= 7 ? 1.4 : 1);
+    return perRun * +$('runs').value;
+  }
+  document.querySelectorAll('aside input, aside select').forEach((el) => {
+    if (el.id === 'preset') return;
+    el.addEventListener('input', () => { if (el.id !== 'runs') { presetSel.value = 'custom'; $('presetHelp').textContent = 'Your own settings.'; } refreshOutputs(); });
+  });
+  presetSel.addEventListener('change', () => applyPreset(presetSel.value));
+
+  // ------------------------------------------------------------------ worker
+  const workerSrc = document.getElementById('engine').textContent + `
+    self.onmessage = (e) => {
+      const { params, runs, seed } = e.data;
+      const res = KidneySim.runMany(params, runs, seed, (i, n) => self.postMessage({ progress: i / n }));
+      self.postMessage({ done: res });
+    };`;
+  let worker = null;
+  try { worker = new Worker(URL.createObjectURL(new Blob([workerSrc], { type: 'text/javascript' }))); } catch (e) { worker = null; }
+
+  let current = null; // { name, params, res, color }
+  const saved = [];
+
+  $('runBtn').addEventListener('click', () => {
+    const params = readParams(); const runs = +$('runs').value;
+    const name = presetSel.value === 'custom' ? 'Custom scenario' : presetSel.options[presetSel.selectedIndex].text;
+    $('runBtn').disabled = true; $('saveBtn').disabled = true; $('bar').style.width = '0%';
+    $('status').textContent = 'Running ' + runs + ' simulations…';
+    const t0 = performance.now();
+    const finish = (res) => {
+      $('runBtn').disabled = false; $('saveBtn').disabled = false; $('bar').style.width = '100%';
+      $('status').textContent = runs + ' runs finished in ' + ((performance.now() - t0) / 1000).toFixed(1) + ' s.';
+      current = { id: Date.now(), name, params, res, runs };
+      renderAll();
+    };
+    if (worker) {
+      worker.onmessage = (e) => {
+        if (e.data.progress != null) $('bar').style.width = (100 * e.data.progress).toFixed(0) + '%';
+        if (e.data.done) finish(e.data.done);
+      };
+      worker.postMessage({ params, runs, seed: 1 });
+    } else {
+      setTimeout(() => finish(S.runMany(params, runs, 1)), 30);
+    }
+  });
+
+  $('saveBtn').addEventListener('click', () => {
+    if (!current) return;
+    const used = new Set(saved.map((s) => s.slot));
+    const slot = [2, 3].find((x) => !used.has(x)) || 0;
+    saved.push(Object.assign({}, current, { show: slot > 0, slot }));
+    $('saveBtn').disabled = true;
+    renderAll();
+  });
+  $('clearBtn').addEventListener('click', () => { saved.length = 0; renderAll(); });
+  $('csvBtn').addEventListener('click', downloadCsv);
+
+  // ------------------------------------------------------------------ helpers
+  const pct = (x) => (Number.isFinite(x) ? Math.round(100 * x) + '%' : '–');
+  const rng = (o) => (Number.isFinite(o.lo) ? Math.round(100 * o.lo) + '–' + Math.round(100 * o.hi) + '%' : '');
+  const days = (x) => (Number.isFinite(x) ? Math.round(x) : '–');
+  const NS = 'http://www.w3.org/2000/svg';
+  function el(tag, attrs, parent) {
+    const e = document.createElementNS(NS, tag);
+    for (const [k, v] of Object.entries(attrs || {})) e.setAttribute(k, v);
+    if (parent) parent.appendChild(e);
+    return e;
+  }
+  function txt(parent, x, y, s, attrs) { const t = el('text', Object.assign({ x, y }, attrs || {}), parent); t.textContent = s; return t; }
+  const tip = $('tip');
+  function showTip(evt, html) { tip.innerHTML = html; tip.style.display = 'block'; const x = Math.min(evt.clientX + 14, window.innerWidth - 280); tip.style.left = x + 'px'; tip.style.top = (evt.clientY + 14) + 'px'; }
+  function hideTip() { tip.style.display = 'none'; }
+  const css = (v) => getComputedStyle(document.documentElement).getPropertyValue(v).trim();
+  const slotColor = (slot) => css(slot === 2 ? '--s2' : slot === 3 ? '--s3' : '--s1');
+  function widthOf(id) { return Math.max(320, $(id).clientWidth || 600); }
+
+  // ------------------------------------------------------------------ render
+  function renderAll() {
+    if (!current) return;
+    renderTiles(); renderCurve(); renderBars('byGroup', ['O', 'A', 'B', 'AB'], current.res.byGroup, [0.40, 0.64, 0.54, 0.42], 'Blood group ');
+    renderBars('byBand', S.CPRA_BANDS.map((b) => b[3]), current.res.byBand, [0.57, 0.61, 0.53, 0.31, 0.03], 'Antibody level ', current.res.bandShare);
+    renderSpread(); renderWaits(); renderRegions(); renderCompare(); renderCalib();
+  }
+
+  function renderTiles() {
+    const r = current.res;
+    const base = saved.length ? saved[0] : null;
+    const delta = (k, isPct) => {
+      if (!base || base === current) return '';
+      const d = r[k].mean - base.res[k].mean;
+      const s = isPct ? (d >= 0 ? '+' : '−') + Math.abs(Math.round(100 * d)) + ' pts' : (d >= 0 ? '+' : '−') + Math.abs(Math.round(d)) + ' days';
+      return '<div class="d">' + s + ' vs “' + base.name + '”</div>';
+    };
+    const tiles = [
+      ['Pairs transplanted', pct(r.pctTransplanted.mean), '90% of runs: ' + rng(r.pctTransplanted), delta('pctTransplanted', true)],
+      ['Transplanted within a year', pct(r.pctWithinYear.mean), '90% of runs: ' + rng(r.pctWithinYear), delta('pctWithinYear', true)],
+      ['Median wait, joining to surgery', days(r.medianWait.mean) + ' days', '90% of runs: ' + days(r.medianWait.lo) + '–' + days(r.medianWait.hi) + ' days', delta('medianWait', false)],
+      ['Left without a kidney', pct(r.pctLeft.mean), '90% of runs: ' + rng(r.pctLeft), delta('pctLeft', true)],
+    ];
+    $('tiles').innerHTML = tiles.map(([k, v, rr, d]) => `<div class="tile"><div class="k">${k}</div><div class="v">${v}</div><div class="r">${rr}</div>${d}</div>`).join('') +
+      `<div class="tile" style="grid-column:1/-1;padding:10px 16px"><div class="r">${current.name} · ${current.runs} runs · about ${Math.round(r.cohortSize.mean)} pairs followed per run · average pool ${Math.round(r.avgPool.mean)} pairs · ${Math.round(r.pairTxPerYear.mean)} pair transplants a year${r.waitingListPerYear.mean > 0.5 ? ' + ' + Math.round(r.waitingListPerYear.mean) + ' to the waiting list from chains' : ''}${r.crossBorderShare.mean > 0 ? ' · ' + pct(r.crossBorderShare.mean) + ' of transplants cross a border' : ''}</div></div>`;
+  }
+
+  function renderCurve() {
+    const host = $('curve'); host.innerHTML = '';
+    const W = widthOf('curve'), H = 280, m = { l: 44, r: 16, t: 10, b: 34 };
+    const svg = el('svg', { width: W, height: H, viewBox: `0 0 ${W} ${H}` }, host);
+    const series = [{ name: current.name + ' (current)', curve: current.res.curve, color: css('--s1'), band: true }];
+    for (const s of saved) if (s.show && s.slot && s.id !== current.id) series.push({ name: s.name, curve: s.res.curve, color: slotColor(s.slot) });
+    const maxY = Math.min(1, Math.max(0.2, ...series.map((s) => s.curve[s.curve.length - 1].hi || 0)) + 0.05);
+    const x = (mo) => m.l + (W - m.l - m.r) * mo / 36, y = (v) => H - m.b - (H - m.t - m.b) * v / maxY;
+    for (let v = 0; v <= maxY + 1e-9; v += 0.1) { el('line', { x1: m.l, x2: W - m.r, y1: y(v), y2: y(v), class: 'gridline' }, svg); txt(svg, m.l - 6, y(v) + 4, Math.round(v * 100) + '%', { 'text-anchor': 'end' }); }
+    for (let mo = 0; mo <= 36; mo += 6) txt(svg, x(mo), H - m.b + 16, mo, { 'text-anchor': 'middle' });
+    txt(svg, (m.l + W - m.r) / 2, H - 4, 'Months since joining', { 'text-anchor': 'middle' });
+    el('line', { x1: m.l, x2: W - m.r, y1: y(0), y2: y(0), class: 'axis' }, svg);
+    // 12-month marker
+    el('line', { x1: x(12), x2: x(12), y1: m.t, y2: H - m.b, stroke: css('--border'), 'stroke-dasharray': '3 3' }, svg);
+    const c0 = current.res.curve;
+    el('path', { d: 'M' + c0.map((p) => x(p.month) + ',' + y(p.hi)).join('L') + 'L' + c0.slice().reverse().map((p) => x(p.month) + ',' + y(p.lo)).join('L') + 'Z', fill: css('--band1'), stroke: 'none' }, svg);
+    for (const s of series.slice().reverse()) el('path', { d: 'M' + s.curve.map((p) => x(p.month) + ',' + y(p.mean)).join('L'), fill: 'none', stroke: s.color, 'stroke-width': 2, 'stroke-linejoin': 'round' }, svg);
+    // hover
+    const cross = el('line', { y1: m.t, y2: H - m.b, stroke: css('--text-2'), 'stroke-width': 1, opacity: 0 }, svg);
+    const hit = el('rect', { x: m.l, y: m.t, width: W - m.l - m.r, height: H - m.t - m.b, fill: 'transparent' }, svg);
+    hit.addEventListener('mousemove', (e) => {
+      const r = svg.getBoundingClientRect(); const mo = Math.max(0, Math.min(36, Math.round((e.clientX - r.left - m.l) / (W - m.l - m.r) * 36)));
+      cross.setAttribute('x1', x(mo)); cross.setAttribute('x2', x(mo)); cross.setAttribute('opacity', 0.5);
+      showTip(e, `<b>${mo} months after joining</b><br>` + series.map((s) => `<span class="swatch" style="background:${s.color}"></span>${s.name}: <b>${pct(s.curve[mo].mean)}</b>${s.band ? ' (' + rng(s.curve[mo]) + ')' : ''}`).join('<br>'));
+    });
+    hit.addEventListener('mouseleave', () => { cross.setAttribute('opacity', 0); hideTip(); });
+    $('curveLegend').innerHTML = series.map((s) => `<span><i style="background:${s.color}"></i>${s.name}</span>`).join('') + '<span><i style="background:var(--band1);height:10px"></i>90% of runs (current)</span><span><i style="background:var(--border);height:1px"></i>dashed line = 1 year</span>';
+  }
+
+  function renderBars(id, labels, vals, real, tipPrefix, mix) {
+    const host = $(id); host.innerHTML = '';
+    const W = widthOf(id), rowH = 34, m = { l: Math.max(74, 12 + 6.6 * Math.max(...labels.map((l) => l.length))), r: 54, t: 6, b: 24 }, H = m.t + m.b + rowH * labels.length;
+    const svg = el('svg', { width: W, height: H, viewBox: `0 0 ${W} ${H}` }, host);
+    const x = (v) => m.l + (W - m.l - m.r) * v;
+    for (let v = 0; v <= 1.0001; v += 0.25) { el('line', { x1: x(v), x2: x(v), y1: m.t, y2: H - m.b, class: 'gridline' }, svg); txt(svg, x(v), H - 6, Math.round(v * 100) + '%', { 'text-anchor': 'middle' }); }
+    labels.forEach((lab, i) => {
+      const v = vals[i], yc = m.t + rowH * i + rowH / 2;
+      txt(svg, m.l - 8, yc + 4, lab, { 'text-anchor': 'end' });
+      if (mix) txt(svg, m.l - 8, yc + 15, Math.round(100 * mix[i].mean) + '% of pool', { 'text-anchor': 'end', style: 'font-size:9px', fill: css('--muted') });
+      if (!Number.isFinite(v.mean)) return;
+      const bw = Math.max(0, x(v.mean) - m.l);
+      el('path', { d: `M${m.l},${yc - 7}h${Math.max(0, bw - 4)}a4,4 0 0 1 4,4v6a4,4 0 0 1 -4,4h${-Math.max(0, bw - 4)}z`, fill: css('--s1') }, svg);
+      el('line', { x1: x(v.lo), x2: x(v.hi), y1: yc, y2: yc, stroke: css('--text'), 'stroke-width': 1.5 }, svg);
+      el('line', { x1: x(v.lo), x2: x(v.lo), y1: yc - 4, y2: yc + 4, stroke: css('--text'), 'stroke-width': 1.5 }, svg);
+      el('line', { x1: x(v.hi), x2: x(v.hi), y1: yc - 4, y2: yc + 4, stroke: css('--text'), 'stroke-width': 1.5 }, svg);
+      if (real) el('line', { x1: x(real[i]), x2: x(real[i]), y1: yc - 11, y2: yc + 11, stroke: css('--muted'), 'stroke-width': 3, opacity: 0.8 }, svg);
+      txt(svg, x(Math.max(v.hi, real ? real[i] : 0)) + 6, yc + 4, pct(v.mean), { fill: css('--text'), 'font-weight': 600 });
+      const hit = el('rect', { x: 0, y: yc - rowH / 2, width: W, height: rowH, fill: 'transparent' }, svg);
+      hit.addEventListener('mousemove', (e) => showTip(e, `<b>${tipPrefix}${lab}</b><br>Transplanted: <b>${pct(v.mean)}</b> (90% of runs ${rng(v)})` + (real ? `<br>Real UK: ${pct(real[i])}` : '') + (mix ? `<br>Share of pool: ${pct(mix[i].mean)}` : '')));
+      hit.addEventListener('mouseleave', hideTip);
+    });
+  }
+
+  function renderSpread() {
+    const host = $('spread'); host.innerHTML = '';
+    const vals = current.res.pctTransplanted.values;
+    const W = widthOf('spread'), H = 150, m = { l: 20, r: 20, t: 16, b: 30 };
+    const lo = Math.max(0, Math.floor((Math.min(...vals) - 0.03) * 20) / 20), hi = Math.min(1, Math.ceil((Math.max(...vals) + 0.03) * 20) / 20);
+    const x = (v) => m.l + (W - m.l - m.r) * (v - lo) / (hi - lo || 1);
+    const svg = el('svg', { width: W, height: H, viewBox: `0 0 ${W} ${H}` }, host);
+    for (let v = lo; v <= hi + 1e-9; v += 0.05) { el('line', { x1: x(v), x2: x(v), y1: m.t, y2: H - m.b, class: 'gridline' }, svg); txt(svg, x(v), H - 12, Math.round(v * 100) + '%', { 'text-anchor': 'middle' }); }
+    const bins = {};
+    vals.forEach((v, i) => {
+      const b = Math.round(v * 200); bins[b] = (bins[b] || 0) + 1;
+      const c = el('circle', { cx: x(v), cy: H - m.b - 6 - (bins[b] - 1) * 9, r: 4, fill: css('--s1'), stroke: css('--surface') , 'stroke-width': 1 }, svg);
+      c.addEventListener('mousemove', (e) => showTip(e, `Run ${i + 1}: <b>${(100 * v).toFixed(1)}%</b> transplanted`)); c.addEventListener('mouseleave', hideTip);
+    });
+    const mean = current.res.pctTransplanted.mean;
+    el('line', { x1: x(mean), x2: x(mean), y1: m.t - 6, y2: H - m.b, stroke: css('--text'), 'stroke-width': 1.5, 'stroke-dasharray': '4 3' }, svg);
+    txt(svg, x(mean) + 5, m.t + 2, 'average ' + (100 * mean).toFixed(1) + '%', { fill: css('--text') });
+  }
+
+  function renderWaits() {
+    const host = $('waits'); host.innerHTML = '';
+    const w = current.res.waits; if (!w.length) { host.innerHTML = '<div class="empty">No transplants.</div>'; return; }
+    const nb = 18, bins = new Array(nb).fill(0); // 2-month bins up to 36 months
+    for (const d of w) bins[Math.min(nb - 1, Math.floor(d / 30.4 / 2))]++;
+    const tot = w.length, maxB = Math.max(...bins) / tot;
+    const W = widthOf('waits'), H = 170, m = { l: 40, r: 10, t: 10, b: 32 };
+    const svg = el('svg', { width: W, height: H, viewBox: `0 0 ${W} ${H}` }, host);
+    const bw = (W - m.l - m.r) / nb, y = (v) => H - m.b - (H - m.t - m.b) * v / maxB;
+    for (let v = 0; v <= maxB + 1e-9; v += maxB > 0.2 ? 0.1 : 0.05) { el('line', { x1: m.l, x2: W - m.r, y1: y(v), y2: y(v), class: 'gridline' }, svg); txt(svg, m.l - 6, y(v) + 4, Math.round(v * 100) + '%', { 'text-anchor': 'end' }); }
+    bins.forEach((b, i) => {
+      const v = b / tot, x0 = m.l + i * bw + 1, h = H - m.b - y(v);
+      if (h > 0) el('path', { d: `M${x0},${H - m.b}v${-Math.max(0, h - 4)}a4,4 0 0 1 4,-4h${bw - 10}a4,4 0 0 1 4,4v${Math.max(0, h - 4)}z`, fill: css('--s1') }, svg);
+      const hit = el('rect', { x: x0, y: m.t, width: bw, height: H - m.t - m.b, fill: 'transparent' }, svg);
+      hit.addEventListener('mousemove', (e) => showTip(e, `${i * 2}–${i * 2 + 2} months${i === nb - 1 ? ' or more' : ''}: <b>${pct(v)}</b> of transplanted patients`)); hit.addEventListener('mouseleave', hideTip);
+    });
+    for (let mo = 0; mo <= 36; mo += 6) txt(svg, m.l + (mo / 2) * bw, H - m.b + 16, mo, { 'text-anchor': 'middle' });
+    txt(svg, (m.l + W - m.r) / 2, H - 2, 'Months from joining to transplant', { 'text-anchor': 'middle' });
+  }
+
+  function renderRegions() {
+    const keys = Object.keys(current.res.byRegion);
+    $('regionCard').style.display = keys.length > 1 ? '' : 'none';
+    if (keys.length > 1) renderBars('byRegion', keys.map((k) => S.REGIONS[k].name), keys.map((k) => current.res.byRegion[k]), null, '');
+  }
+
+  function scenarioText(p) {
+    const parts = [];
+    const regs = Object.entries(p.arrivals).filter(([, v]) => v > 0).map(([k, v]) => S.REGIONS[k].name + ' ' + v);
+    parts.push(regs.join(', ') + ' pairs/yr' + (regs.length > 1 ? (p.crossBorder ? ', shared pool' : ', separate schemes') : ''));
+    parts.push({ 91: 'quarterly', 30: 'monthly', 14: 'fortnightly', 7: 'weekly', 1: 'daily' }[p.matchEveryDays] + ' matching');
+    parts.push(p.maxCycle === 3 ? '2- & 3-way' : '2-way only');
+    parts.push(p.altruisticPer100 + ' altruistic/100 pairs, ' + Math.round(p.compatibleJoin * 100) + '% compatible join');
+    if (p.protectO) parts.push('O kept for O'); if (p.a2Donors) parts.push('A2 donors');
+    parts.push(Math.round(p.fallThrough * 100) + '% fall through');
+    return parts.join(' · ');
+  }
+  function renderCompare() {
+    const host = $('compare');
+    if (!saved.length) { host.innerHTML = '<div class="empty">Run a scenario and press "Save to comparison".</div>'; return; }
+    const f = (o) => `${pct(o.mean)} <span style="color:var(--muted)">(${rng(o)})</span>`;
+    let h = '<div style="overflow-x:auto"><table><thead><tr><th>Show on chart</th><th>Scenario</th><th class="num">Transplanted</th><th class="num">Within 1 yr</th><th class="num">Median wait</th><th class="num">Group O</th><th class="num">Antibodies 85%+</th><th class="num">Left</th><th class="num">Runs</th><th></th></tr></thead><tbody>';
+    saved.forEach((s, i) => {
+      const r = s.res;
+      h += `<tr><td>${s.slot ? `<input type="checkbox" data-show="${i}" ${s.show ? 'checked' : ''}> <span class="swatch" style="background:${slotColor(s.slot)}"></span>` : '<span class="pill">table only</span>'}</td>
+        <td style="min-width:240px"><b>${s.name}</b><div style="color:var(--muted);font-size:12px">${scenarioText(s.params)}</div></td>
+        <td class="num">${f(r.pctTransplanted)}</td><td class="num">${f(r.pctWithinYear)}</td>
+        <td class="num">${days(r.medianWait.mean)} days</td><td class="num">${f(r.pctO)}</td><td class="num">${f(r.pctHighlySensitised)}</td>
+        <td class="num">${f(r.pctLeft)}</td><td class="num">${s.runs}</td><td><button class="btn" data-del="${i}" style="padding:2px 8px">✕</button></td></tr>`;
+    });
+    h += '</tbody></table></div>';
+    // bar comparison of % transplanted
+    host.innerHTML = h + '<div id="cmpBars" style="margin-top:14px"></div>';
+    renderBars('cmpBars', saved.map((s, i) => '#' + (i + 1)), saved.map((s) => s.res.pctTransplanted), null, 'Scenario ');
+    const svgLabels = $('cmpBars').querySelectorAll('text');
+    host.querySelectorAll('[data-show]').forEach((cb) => cb.addEventListener('change', () => { saved[+cb.dataset.show].show = cb.checked; renderCurve(); }));
+    host.querySelectorAll('[data-del]').forEach((b) => b.addEventListener('click', () => { saved.splice(+b.dataset.del, 1); renderAll(); }));
+    // number the table rows to match the bars
+    host.querySelectorAll('tbody tr').forEach((tr, i) => { const b = tr.children[1].querySelector('b'); b.textContent = '#' + (i + 1) + ' ' + saved[i].name; });
+    void svgLabels;
+  }
+
+  function renderCalib() {
+    // Only fill the calibration table from a run of the unchanged UK preset.
+    const p = current.params, d = UK;
+    const isUK = p.arrivals.uk === d.arrivals.uk && !p.arrivals.sa && !p.arrivals.me && ['matchEveryDays', 'maxCycle', 'altruisticPer100', 'compatibleJoin', 'fallThrough', 'acceptance', 'daysToSurgery', 'leaveRatePerYear', 'priorityNoise'].every((k) => p[k] === d[k]) && !p.protectO && !p.a2Donors;
+    if (!isUK) return;
+    const r = current.res;
+    const set = (k, v) => { const c = document.querySelector(`#calib [data-k="${k}"]`); if (c) c.textContent = v; };
+    set('pctTransplanted', pct(r.pctTransplanted.mean)); set('medianWait', days(r.medianWait.mean));
+    set('g0', pct(r.byGroup[0].mean)); set('b4', pct(r.byBand[4].mean)); set('failRate', pct(r.failRate.mean));
+  }
+
+  function downloadCsv() {
+    const rows = [['Scenario', 'Settings', 'Runs', 'Transplanted mean', 'Transplanted 5th pct', 'Transplanted 95th pct', 'Within 1 year mean', 'Median wait days', 'Group O transplanted', 'Antibodies 85%+ transplanted', 'Left without kidney', 'Average pool', 'Pair transplants per year', 'Cross-border share']];
+    const list = saved.length ? saved : (current ? [current] : []);
+    for (const s of list) {
+      const r = s.res;
+      rows.push([s.name, scenarioText(s.params), s.runs, r.pctTransplanted.mean, r.pctTransplanted.lo, r.pctTransplanted.hi, r.pctWithinYear.mean, r.medianWait.mean, r.pctO.mean, r.pctHighlySensitised.mean, r.pctLeft.mean, r.avgPool.mean, r.pairTxPerYear.mean, r.crossBorderShare.mean]
+        .map((v) => typeof v === 'number' ? +v.toFixed(4) : v));
+    }
+    const csv = rows.map((r) => r.map((v) => '"' + String(v).replace(/"/g, '""') + '"').join(',')).join('\n');
+    const a = document.createElement('a'); a.href = URL.createObjectURL(new Blob([csv], { type: 'text/csv' })); a.download = 'kidney-exchange-scenarios.csv'; a.click();
+  }
+
+  window.addEventListener('resize', () => { if (current) renderAll(); });
+  applyPreset('uk');
+  $('runs').value = '30';
+  refreshOutputs();
+})();
+</script>
+</body>
+</html>
