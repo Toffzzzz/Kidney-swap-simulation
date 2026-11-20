@@ -83,13 +83,14 @@ Other inputs:
 
 ## Fixed inputs and sources
 
-- **UKLKSS activity.** NHS Blood and Transplant, *Annual Report on Living Donor Kidney Transplantation 2024/25*, Section 4 (https://nhsbtdbe.blob.core.windows.net/umbraco-assets-corp/37276/nhsbt-living-donor-kidney-transplantation-report-2425.pdf):
+- **UKLKSS activity.** NHS Blood and Transplant, *Annual Report on Living Donor Kidney Transplantation 2024/25*, Section 4 (https://nhsbtdbe.blob.core.windows.net/umbraco-assets-corp/37506/annual-report-on-living-donor-kidney-transplantation-2425.pdf):
   - registrations by year (Table 4.2);
   - 1,897 pairs in 2019–25, of which 286 were compatible (Table 4.1);
   - 51% of registered recipients transplanted and 71% of identified transplants proceeding (2021–25);
   - transplant rates by cRF band (Table 4.3) and by blood group (Table 4.4);
   - altruistic chains by year (Table 4.8);
   - altruistic donors taking a median 3 months from notification to donation (Table 4.9).
+- **All NHSBT living donor kidney reports** (use this if a PDF link has moved): https://www.odt.nhs.uk/statistics-and-reports/organ-specific-reports
 - **Pre-COVID comparison.** NHSBT, *Annual Report on Living Donor Kidney Transplantation 2019/20* (https://nhsbtdbe.blob.core.windows.net/umbraco-assets-corp/20611/annual-report-on-living-donor-kidney-transplantation-2019_20-final.pdf): 41% transplanted and 59% of identified transplants proceeding, 2016–20.
 - **Matching every 3 months; chains of up to 2 pairs; about 300 patients registered at any one time.** NHSBT / ODT, UK Living Kidney Sharing Scheme pages (https://www.odt.nhs.uk/living-donation/uk-living-kidney-sharing-scheme, https://www.organdonation.scot/living-donation/uk-living-kidney-sharing-scheme).
 - **Blood groups, UK.** O 47%, A 42%, B 8%, AB 3% (British population data).
