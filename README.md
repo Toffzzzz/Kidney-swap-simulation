@@ -83,15 +83,15 @@ Other inputs:
 
 ## Fixed inputs and sources
 
-- **UKLKSS activity.** NHS Blood and Transplant, *Annual Report on Living Donor Kidney Transplantation 2024/25*, Section 4:
+- **UKLKSS activity.** NHS Blood and Transplant, *Annual Report on Living Donor Kidney Transplantation 2024/25*, Section 4 (https://nhsbtdbe.blob.core.windows.net/umbraco-assets-corp/37276/nhsbt-living-donor-kidney-transplantation-report-2425.pdf):
   - registrations by year (Table 4.2);
   - 1,897 pairs in 2019–25, of which 286 were compatible (Table 4.1);
   - 51% of registered recipients transplanted and 71% of identified transplants proceeding (2021–25);
   - transplant rates by cRF band (Table 4.3) and by blood group (Table 4.4);
   - altruistic chains by year (Table 4.8);
   - altruistic donors taking a median 3 months from notification to donation (Table 4.9).
-- **Pre-COVID comparison.** NHSBT, *Annual Report on Living Donor Kidney Transplantation 2019/20*: 41% transplanted and 59% of identified transplants proceeding, 2016–20.
-- **Matching every 3 months; chains of up to 2 pairs.** NHSBT / ODT, UK Living Kidney Sharing Scheme pages.
+- **Pre-COVID comparison.** NHSBT, *Annual Report on Living Donor Kidney Transplantation 2019/20* (https://nhsbtdbe.blob.core.windows.net/umbraco-assets-corp/20611/annual-report-on-living-donor-kidney-transplantation-2019_20-final.pdf): 41% transplanted and 59% of identified transplants proceeding, 2016–20.
+- **Matching every 3 months; chains of up to 2 pairs; about 300 patients registered at any one time.** NHSBT / ODT, UK Living Kidney Sharing Scheme pages (https://www.odt.nhs.uk/living-donation/uk-living-kidney-sharing-scheme, https://organdonationscotland.org/living-donation/uk-living-kidney-sharing-scheme).
 - **Blood groups, UK.** O 47%, A 42%, B 8%, AB 3% (British population data).
 - **Blood groups, South Asia.** O 37.1%, A 22.9%, B 32.3%, AB 7.7%. Agrawal et al. 2014, first multicentre ABO study in India (PMC4140055).
 - **Blood groups, Gulf / Middle East.** O 51.8%, A 25.9%, B 18.0%, AB 4.3% (Saudi Arabia, Rh+ and Rh− combined).
