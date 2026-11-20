@@ -829,6 +829,9 @@
 
   $('runBtn').addEventListener('click', () => {
     const params = readParams(); const runs = +$('runs').value;
+    // Fresh random numbers on every click, so repeat runs differ slightly (as they should).
+    // The seed is shown with the results so any run can be reproduced exactly.
+    const seed = 1 + Math.floor(Math.random() * 1e6);
     const name = presetSel.value === 'custom' ? 'Custom scenario' : presetSel.options[presetSel.selectedIndex].text;
     $('runBtn').disabled = true; $('saveBtn').disabled = true; $('bar').style.width = '0%';
     $('status').textContent = 'Running ' + runs + ' simulations…';
@@ -836,7 +839,7 @@
     const finish = (res) => {
       $('runBtn').disabled = false; $('saveBtn').disabled = false; $('bar').style.width = '100%';
       $('status').textContent = runs + ' runs finished in ' + ((performance.now() - t0) / 1000).toFixed(1) + ' s.';
-      current = { id: Date.now(), name, params, res, runs };
+      current = { id: Date.now(), name, params, res, runs, seed };
       renderAll();
     };
     if (worker) {
@@ -844,9 +847,9 @@
         if (e.data.progress != null) $('bar').style.width = (100 * e.data.progress).toFixed(0) + '%';
         if (e.data.done) finish(e.data.done);
       };
-      worker.postMessage({ params, runs, seed: 1 });
+      worker.postMessage({ params, runs, seed });
     } else {
-      setTimeout(() => finish(S.runMany(params, runs, 1)), 30);
+      setTimeout(() => finish(S.runMany(params, runs, seed)), 30);
     }
   });
 
@@ -904,7 +907,7 @@
       ['Left without a kidney', pct(r.pctLeft.mean), '90% of runs: ' + rng(r.pctLeft), delta('pctLeft', true)],
     ];
     $('tiles').innerHTML = tiles.map(([k, v, rr, d]) => `<div class="tile"><div class="k">${k}</div><div class="v">${v}</div><div class="r">${rr}</div>${d}</div>`).join('') +
-      `<div class="tile" style="grid-column:1/-1;padding:10px 16px"><div class="r">${current.name} · ${current.runs} runs · about ${Math.round(r.cohortSize.mean)} pairs followed per run · average pool ${Math.round(r.avgPool.mean)} pairs · ${Math.round(r.pairTxPerYear.mean)} pair transplants a year${r.waitingListPerYear.mean > 0.5 ? ' + ' + Math.round(r.waitingListPerYear.mean) + ' to the waiting list from chains' : ''}${r.crossBorderShare.mean > 0 ? ' · ' + pct(r.crossBorderShare.mean) + ' of transplants cross a border' : ''}</div></div>`;
+      `<div class="tile" style="grid-column:1/-1;padding:10px 16px"><div class="r">${current.name} · ${current.runs} runs (seed ${current.seed}) · about ${Math.round(r.cohortSize.mean)} pairs followed per run · average pool ${Math.round(r.avgPool.mean)} pairs · ${Math.round(r.pairTxPerYear.mean)} pair transplants a year${r.waitingListPerYear.mean > 0.5 ? ' + ' + Math.round(r.waitingListPerYear.mean) + ' to the waiting list from chains' : ''}${r.crossBorderShare.mean > 0 ? ' · ' + pct(r.crossBorderShare.mean) + ' of transplants cross a border' : ''}</div></div>`;
   }
 
   function renderCurve() {
