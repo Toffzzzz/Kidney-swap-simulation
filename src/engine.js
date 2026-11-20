@@ -18,9 +18,11 @@
 
   // ABO blood group frequencies by region.
   const REGIONS = {
-    uk: { name: 'UK', abo: { O: 0.47, A: 0.42, B: 0.08, AB: 0.03 } },
-    sa: { name: 'South Asia', abo: { O: 0.371, A: 0.229, B: 0.323, AB: 0.077 } },
-    me: { name: 'Gulf / Middle East', abo: { O: 0.518, A: 0.259, B: 0.18, AB: 0.043 } },
+    // a2 = share of group A people who are the A2 subtype (UK ~20%; South Asia ~1-3%;
+    // Saudi data describe A2 as rare, so the South Asian figure is used).
+    uk: { name: 'UK', abo: { O: 0.47, A: 0.42, B: 0.08, AB: 0.03 }, a2: 0.20 },
+    sa: { name: 'South Asia', abo: { O: 0.371, A: 0.229, B: 0.323, AB: 0.077 }, a2: 0.02 },
+    me: { name: 'Gulf / Middle East', abo: { O: 0.518, A: 0.259, B: 0.18, AB: 0.043 }, a2: 0.02 },
   };
   const REGION_KEYS = Object.keys(REGIONS);
   const ABO = ['O', 'A', 'B', 'AB'];
@@ -174,8 +176,10 @@
     function addPair(day, region, compatible, dABO, rABO, cpra) {
       const p = {
         id: pairs.length, region, dABO, rABO, cpra,
-        dA2: dABO === 'A' && rng() < 0.2,
-        lowTitre: rABO === 'O' ? rng() < 0.63 : rng() < 0.97,
+        dA2: dABO === 'A' && rng() < REGIONS[region].a2,
+        // Low enough anti-A antibodies to accept an A2 kidney: about 1 in 3 group O
+        // patients and 9 in 10 group B patients (US titre-history data).
+        lowTitre: rABO === 'O' ? rng() < 0.33 : rng() < 0.90,
         compatible, arrive: day, status: 'pool', runsUnmatched: 0, txDay: -1, dirty: true,
       };
       pairs.push(p);
@@ -202,7 +206,7 @@
       let u = rng() * tot, region = 'uk';
       for (const k of REGION_KEYS) { u -= P.arrivals[k] || 0; if (u <= 0) { region = k; break; } }
       const abo = pickABO(rng, REGIONS[region].abo);
-      const n = { abo, a2: abo === 'A' && rng() < 0.2, region, arrive: day, runs: 0, out: new Set() };
+      const n = { abo, a2: abo === 'A' && rng() < REGIONS[region].a2, region, arrive: day, runs: 0, out: new Set() };
       for (const q of active) if (edge(abo, n.a2, region, q)) n.out.add(q.id);
       ndads.push(n);
     }

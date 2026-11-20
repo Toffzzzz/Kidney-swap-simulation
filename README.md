@@ -48,7 +48,7 @@ Each **run** simulates about 8 years, one day at a time.
    - the crossmatch is negative (chance = 1 − recipient's cRF);
    - the clinical team would accept the donor on other grounds, such as age, HLA mismatch, size and distance (the "acceptance" setting).
 
-   Optional rules: group O donors only to group O recipients; A2-subtype donors (20% of group A) to O or B recipients with low antibody titres (63% of O and 97% of B recipients).
+   Optional rules: group O donors only to group O recipients; A2-subtype donors (20% of group A in the UK, 2% in South Asia and the Gulf) to O or B recipients with low anti-A antibody titres (33% of O and 90% of B recipients).
 3. **Matching runs** happen on the chosen timetable. Patients are taken hardest-to-match first, meaning those with the fewest compatible donors. For each patient the model looks first for a two-way swap, then for a three-way swap. Altruistic donors then start chains: altruistic donor → pair → pair → national waiting list.
 4. **Swaps go ahead or fall through.** Each agreed swap falls through with the set probability. If it does, the pairs re-enter the pool 45 days later and the link that failed is removed. If it goes ahead, surgery follows after a random delay: at least 45 days, 90 days on average. Swaps that cross borders get extra days.
 5. **Pairs leave.** Waiting pairs leave at the set yearly rate (illness, death, a deceased-donor transplant, or withdrawal).
@@ -95,7 +95,8 @@ Other inputs:
 - **Blood groups, UK.** O 47%, A 42%, B 8%, AB 3% (British population data).
 - **Blood groups, South Asia.** O 37.1%, A 22.9%, B 32.3%, AB 7.7%. Agrawal et al. 2014, first multicentre ABO study in India (PMC4140055).
 - **Blood groups, Gulf / Middle East.** O 51.8%, A 25.9%, B 18.0%, AB 4.3% (Saudi Arabia, Rh+ and Rh− combined).
-- **A2 donors and antibody titres.** About 20% of group A people are A2. A Dutch simulation found unacceptably high anti-A/B titres in 37% of O and 3% of A/B patients.
+- **A2 donors.** About 20% of group A donors are A2 in a mostly white US donor population (Clinical Transplants 2004). In South Asia it is 1–3% (Karnataka 1.1%, Chhattisgarh 3.3%, Lahore 2.2%). A Saudi study describes A2 as rare, so the Gulf uses 2%.
+- **Who can accept an A2 kidney.** Only about one in three group O patients, but about 90% of group B patients, have a consistently low anti-A antibody (titre) history (Clinical Transplants 2004). I found no evidence that the UK sharing scheme routinely uses A2 → O matching, so the option is off in "UK today".
 
 ## Limitations
 
