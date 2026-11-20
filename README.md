@@ -89,7 +89,7 @@ Other inputs:
   - altruistic donors taking a median 3 months from notification to donation (Table 4.9).
 - **Pre-COVID comparison.** NHSBT, *Annual Report on Living Donor Kidney Transplantation 2019/20*: 41% transplanted and 59% of identified transplants proceeding, 2016–20.
 - **Matching every 3 months; chains of up to 2 pairs.** NHSBT / ODT, UK Living Kidney Sharing Scheme pages.
-- **Blood groups, UK & Europe.** O 47%, A 42%, B 8%, AB 3% (British population data).
+- **Blood groups, UK.** O 47%, A 42%, B 8%, AB 3% (British population data).
 - **Blood groups, South Asia.** O 37.1%, A 22.9%, B 32.3%, AB 7.7%. Agrawal et al. 2014, first multicentre ABO study in India (PMC4140055).
 - **Blood groups, Gulf / Middle East.** O 51.8%, A 25.9%, B 18.0%, AB 4.3% (Saudi Arabia, Rh+ and Rh− combined).
 - **A2 donors and antibody titres.** About 20% of group A people are A2. A Dutch simulation found unacceptably high anti-A/B titres in 37% of O and 3% of A/B patients.

@@ -18,7 +18,7 @@
 
   // ABO blood group frequencies by region.
   const REGIONS = {
-    uk: { name: 'UK & Europe', abo: { O: 0.47, A: 0.42, B: 0.08, AB: 0.03 } },
+    uk: { name: 'UK', abo: { O: 0.47, A: 0.42, B: 0.08, AB: 0.03 } },
     sa: { name: 'South Asia', abo: { O: 0.371, A: 0.229, B: 0.323, AB: 0.077 } },
     me: { name: 'Gulf / Middle East', abo: { O: 0.518, A: 0.259, B: 0.18, AB: 0.043 } },
   };

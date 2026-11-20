@@ -95,7 +95,7 @@
     </label>
 
     <h3>Who is in the pool</h3>
-    <label class="ctl"><span class="ctl-top">UK &amp; Europe pairs / year <output id="o_uk"></output></span>
+    <label class="ctl"><span class="ctl-top">UK pairs / year <output id="o_uk"></output></span>
       <input type="range" id="uk" min="0" max="1500" step="1"><span class="help">Incompatible pairs joining each year. UK today: about 231 (272 registrations a year in non-COVID years, 85% incompatible).</span></label>
     <label class="ctl"><span class="ctl-top">South Asia pairs / year <output id="o_sa"></output></span>
       <input type="range" id="sa" min="0" max="1500" step="1"><span class="help">Blood groups follow Indian data: B is almost as common as O.</span></label>
@@ -264,7 +264,7 @@
 
   // ABO blood group frequencies by region.
   const REGIONS = {
-    uk: { name: 'UK & Europe', abo: { O: 0.47, A: 0.42, B: 0.08, AB: 0.03 } },
+    uk: { name: 'UK', abo: { O: 0.47, A: 0.42, B: 0.08, AB: 0.03 } },
     sa: { name: 'South Asia', abo: { O: 0.371, A: 0.229, B: 0.323, AB: 0.077 } },
     me: { name: 'Gulf / Middle East', abo: { O: 0.518, A: 0.259, B: 0.18, AB: 0.043 } },
   };
