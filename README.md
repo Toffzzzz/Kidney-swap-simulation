@@ -1,6 +1,6 @@
 # Kidney Exchange Simulator
 
-A Monte Carlo simulation of a kidney paired-exchange scheme. It tests how different designs would change who gets a transplant and how long they wait. Examples include a bigger pool, an international pool, more frequent matching, three-way swaps, altruistic chains, and rules that protect group O patients.
+A Monte Carlo simulation of a kidney paired-exchange scheme. It tests how different designs would change who gets a transplant and how long they wait. Examples include a bigger pool, an international pool, more frequent matching, altruistic chains, and rules that protect group O patients. Every scenario uses two- and three-way swaps, as the UK scheme already does.
 
 The default settings are **calibrated to the UK Living Kidney Sharing Scheme (UKLKSS)**, so every scenario is measured against a baseline that matches real published figures.
 
