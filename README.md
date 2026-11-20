@@ -91,7 +91,7 @@ Other inputs:
   - altruistic chains by year (Table 4.8);
   - altruistic donors taking a median 3 months from notification to donation (Table 4.9).
 - **Pre-COVID comparison.** NHSBT, *Annual Report on Living Donor Kidney Transplantation 2019/20* (https://nhsbtdbe.blob.core.windows.net/umbraco-assets-corp/20611/annual-report-on-living-donor-kidney-transplantation-2019_20-final.pdf): 41% transplanted and 59% of identified transplants proceeding, 2016–20.
-- **Matching every 3 months; chains of up to 2 pairs; about 300 patients registered at any one time.** NHSBT / ODT, UK Living Kidney Sharing Scheme pages (https://www.odt.nhs.uk/living-donation/uk-living-kidney-sharing-scheme, https://organdonationscotland.org/living-donation/uk-living-kidney-sharing-scheme).
+- **Matching every 3 months; chains of up to 2 pairs; about 300 patients registered at any one time.** NHSBT / ODT, UK Living Kidney Sharing Scheme pages (https://www.odt.nhs.uk/living-donation/uk-living-kidney-sharing-scheme, https://www.organdonation.scot/living-donation/uk-living-kidney-sharing-scheme).
 - **Blood groups, UK.** O 47%, A 42%, B 8%, AB 3% (British population data).
 - **Blood groups, South Asia.** O 37.1%, A 22.9%, B 32.3%, AB 7.7%. Agrawal et al. 2014, first multicentre ABO study in India (PMC4140055).
 - **Blood groups, Gulf / Middle East.** O 51.8%, A 25.9%, B 18.0%, AB 4.3% (Saudi Arabia, Rh+ and Rh− combined).
