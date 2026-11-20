@@ -495,7 +495,7 @@
         for (const j of n.out) if (free(j) && key.get(j) < s1) { s1 = key.get(j); first = j; }
         if (first < 0) {
           n.runs++;
-          if (n.runs >= 2) { stats.txWaitingList++; } else keep.push(n); // gives to waiting list instead
+          if (n.runs >= 2) { if (day >= DAY0) stats.txWaitingList++; } else keep.push(n); // gives to waiting list instead
           continue;
         }
         const chain = [first];
@@ -540,9 +540,9 @@
           const p = pairs[id];
           p.status = 'tx'; p.txDay = day; p.cross = item.cross;
           removeFromGraph(p);
-          if (!p.compatible) { stats.txPairs++; if (item.cross) stats.txCrossBorder++; if (item.ndad) stats.txFromChains++; }
+          if (!p.compatible && day >= DAY0) { stats.txPairs++; if (item.cross) stats.txCrossBorder++; if (item.ndad) stats.txFromChains++; }
         }
-        if (item.ndad) { stats.chains++; stats.txWaitingList++; }
+        if (item.ndad) { stats.chains++; if (day >= DAY0) stats.txWaitingList++; }
         else if (item.ids.length === 2) stats.cycles2++; else stats.cycles3++;
       } else {
         stats.failed++;
@@ -638,8 +638,9 @@
       shareO: cohort.length ? cohort.filter((p) => p.rABO === 'O').length / cohort.length : 0,
       shareHS: cohort.length ? cohort.filter((p) => p.cpra >= 0.85).length / cohort.length : 0,
       avgPool: stats.poolSamples ? stats.poolSum / stats.poolSamples : 0,
-      pairTxPerYear: stats.txPairs / (T / 365),
-      waitingListPerYear: stats.txWaitingList / (T / 365),
+      // Yearly totals count only after the warm-up, when the pool is full.
+      pairTxPerYear: stats.txPairs / ((T - DAY0) / 365),
+      waitingListPerYear: stats.txWaitingList / ((T - DAY0) / 365),
       crossBorderShare: stats.txPairs ? stats.txCrossBorder / stats.txPairs : 0,
       chainShare: stats.txPairs ? stats.txFromChains / stats.txPairs : 0,
       cycles2: stats.cycles2, cycles3: stats.cycles3, chains: stats.chains,
